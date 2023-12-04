@@ -1,8 +1,10 @@
-use crate::base::Base;
-use crate::effect::add_random_effect;
+use std::f32::consts::FRAC_PI_2;
+
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use std::f32::consts::FRAC_PI_2;
+
+use crate::base::Base;
+use crate::effect::add_random_effect;
 
 #[derive(Resource, Debug)]
 pub struct SpawnTimer(pub Timer);
@@ -113,6 +115,22 @@ impl BlockType {
                 .collect(),
         )
     }
+
+    pub fn block_width(&self) -> f32 {
+        match self {
+            BlockType::I => 4.0,
+            BlockType::O => 2.0,
+            BlockType::T => 3.0,
+            BlockType::S => 3.0,
+            BlockType::Z => 3.0,
+            BlockType::J => 3.0,
+            BlockType::L => 3.0,
+        }
+    }
+
+    pub fn width(&self) -> f32 {
+        self.block_width() * 20.0
+    }
 }
 
 #[derive(Component)]
@@ -122,6 +140,9 @@ pub struct Block {
 
 #[derive(Component)]
 pub struct Falling;
+
+#[derive(Component)]
+pub struct TargetBeam;
 
 /// Event that is fired when a block hits some other object and quits the falling state
 #[derive(Event)]
@@ -142,6 +163,7 @@ impl Block {
         assets: &mut AssetServer,
     ) -> Entity {
         let block = Block::new(block_type);
+        let width = block_type.width();
         let entity = commands
             .spawn((
                 block,
@@ -150,7 +172,7 @@ impl Block {
                 block_type.build_collider(),
                 ActiveEvents::COLLISION_EVENTS,
                 ActiveCollisionTypes::default() | ActiveCollisionTypes::KINEMATIC_KINEMATIC,
-                ColliderMassProperties::Mass(1.0),
+                ColliderMassProperties::Mass(0.1),
                 Friction::coefficient(1.0),
                 Falling,
                 Velocity::linear(Vec2::new(0.0, -150.0)),
@@ -159,6 +181,20 @@ impl Block {
                 ExternalImpulse::default(),
             ))
             .id();
+
+        commands.entity(entity).with_children(|parent| {
+            parent.spawn((
+                SpriteBundle {
+                    sprite: Sprite {
+                        color: Color::rgba_u8(203, 158, 255, 100),
+                        custom_size: Some(Vec2::new(width, 100000.0)),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                TargetBeam,
+            ));
+        });
 
         add_random_effect(&mut commands, assets, entity);
         entity
@@ -219,6 +255,24 @@ pub fn despawn_droped_blocks(
     for (entity, mut transform, ..) in query.iter_mut() {
         if transform.translation.y < base_transform.translation.y {
             commands.entity(entity).despawn_recursive();
+        }
+    }
+}
+
+pub fn despawn_target_beam(
+    mut events: EventReader<CaughtBlock>,
+    mut commands: Commands,
+    query: Query<(&Children)>,
+    children_query: Query<(Entity, With<TargetBeam>)>,
+) {
+    for event in events.iter() {
+        let children = query.get(event.entity);
+        if let Ok(children) = children {
+            for child in children.iter() {
+                if let Ok((entity, ..)) = children_query.get(*child) {
+                    commands.entity(entity).despawn_recursive();
+                }
+            }
         }
     }
 }

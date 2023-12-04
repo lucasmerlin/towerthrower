@@ -7,7 +7,8 @@ mod effect;
 
 use crate::base::{base_position, setup_base};
 use crate::block::{
-    block_collision, despawn_droped_blocks, rotate_falling_blocks, CaughtBlock, SpawnTimer,
+    block_collision, despawn_droped_blocks, despawn_target_beam, rotate_falling_blocks,
+    CaughtBlock, SpawnTimer,
 };
 use crate::block_spawner::{
     remove_not_falling_blocks, spawn_missing_blocks, untrack_despawned_blocks, BlockSpawner,
@@ -32,7 +33,7 @@ fn main() {
         )))
         .add_plugins((
             DefaultPlugins,
-            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
+            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(1000.0),
             RapierDebugRenderPlugin::default(),
             EffectPlugin,
         ))
@@ -48,6 +49,7 @@ fn main() {
                 rotate_falling_blocks,
                 despawn_droped_blocks,
                 camera_movement_system,
+                despawn_target_beam,
             ),
         )
         .add_systems(PostUpdate, (untrack_despawned_blocks))
@@ -75,7 +77,9 @@ pub fn setup_graphics(mut commands: Commands, mut assets: ResMut<AssetServer>) {
     ));
 }
 
-pub fn setup_physics(mut commands: Commands) {
+pub fn setup_physics(mut commands: Commands, mut gravity_scale: ResMut<RapierConfiguration>) {
+    gravity_scale.gravity = Vec2::Y * -9.81 * 100.0;
+
     // /*
     //  * Ground
     //  */

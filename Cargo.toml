@@ -15,7 +15,7 @@ opt-level = 3
 
 
 [dependencies]
-bevy = { version = "0.12", features = ["dynamic_linking"] }
+bevy = { version = "0.12", features = [] }
 bevy_rapier2d = { version = "0.23", features = ["simd-stable", "debug-render-2d"]}
 num = { version = "0.4.1", features = [] }
 
