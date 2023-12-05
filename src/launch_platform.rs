@@ -62,6 +62,10 @@ pub fn launch_platform_control_system(
             } else if velocity.linvel.x < 0.0 {
                 velocity.linvel.x += decrement
             }
+
+            if velocity.linvel.x < decrement && velocity.linvel.x > -decrement {
+                velocity.linvel.x = 0.0;
+            }
         }
 
         if key_code.pressed(KeyCode::W) {
@@ -79,6 +83,10 @@ pub fn launch_platform_control_system(
                 velocity.linvel.y -= decrement
             } else if velocity.linvel.y < 0.0 {
                 velocity.linvel.y += decrement
+            }
+
+            if velocity.linvel.y < decrement && velocity.linvel.y > -decrement {
+                velocity.linvel.y = 0.0;
             }
         }
     }

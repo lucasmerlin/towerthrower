@@ -34,20 +34,20 @@ pub fn add_random_effect(commands: &mut Commands, assets: &mut AssetServer, enti
             commands.entity(entity).insert(GlueEffect::default()).id(),
             "glue.png",
         )),
-        1 => Some((
-            commands
-                .entity(entity)
-                .insert(PlatformEffect::default())
-                .id(),
-            "fixed.png",
-        )),
-        // 2 => Some((
+        // 1 => Some((
         //     commands
         //         .entity(entity)
-        //         .insert(magnetic::MagneticEffect::default())
+        //         .insert(PlatformEffect::default())
         //         .id(),
-        //     "magnet-on.png",
+        //     "fixed.png",
         // )),
+        2 => Some((
+            commands
+                .entity(entity)
+                .insert(magnetic::MagneticEffect::default())
+                .id(),
+            "magnet-on.png",
+        )),
         _ => None,
     };
 

@@ -29,6 +29,8 @@ pub enum BlockType {
     L,
 }
 
+const BLOCK_SIZE: f32 = 20.0;
+
 impl BlockType {
     pub fn random() -> Self {
         match rand::random::<u8>() % 7 {
@@ -102,20 +104,72 @@ impl BlockType {
     }
 
     pub fn build_collider(&self) -> Collider {
-        let size = 20.0;
-        let shape = self.get_shape();
-        Collider::compound(
-            shape
-                .iter()
-                .map(|v| {
-                    (
-                        Vect::new(v.x * size, v.y * size) - self.get_center() * size,
-                        0.0,
-                        Collider::cuboid(size / 2.0, size / 2.0),
-                    )
-                })
-                .collect(),
-        )
+        let size = BLOCK_SIZE;
+        let half_size = size / 2.0;
+        match self {
+            BlockType::I => Collider::cuboid(half_size * 4.0, half_size),
+            BlockType::O => Collider::cuboid(half_size * 2.0, half_size * 2.0),
+            BlockType::T => Collider::compound(vec![
+                (
+                    Vec2::new(0.0, 0.0),
+                    0.0,
+                    Collider::cuboid(half_size * 3.0, half_size),
+                ),
+                (
+                    Vec2::new(0.0, size),
+                    0.0,
+                    Collider::cuboid(half_size, half_size),
+                ),
+            ]),
+            BlockType::S => Collider::compound(vec![
+                (
+                    Vec2::new(0.0, 0.0),
+                    0.0,
+                    Collider::cuboid(half_size * 2.0, half_size),
+                ),
+                (
+                    Vec2::new(size, size),
+                    0.0,
+                    Collider::cuboid(half_size * 2.0, half_size),
+                ),
+            ]),
+            BlockType::Z => Collider::compound(vec![
+                (
+                    Vec2::new(0.0, 0.0),
+                    0.0,
+                    Collider::cuboid(half_size * 2.0, half_size),
+                ),
+                (
+                    Vec2::new(-size, size),
+                    0.0,
+                    Collider::cuboid(half_size * 2.0, half_size),
+                ),
+            ]),
+            BlockType::J => Collider::compound(vec![
+                (
+                    Vec2::new(0.0, 0.0),
+                    0.0,
+                    Collider::cuboid(half_size * 3.0, half_size),
+                ),
+                (
+                    Vec2::new(0.0, size),
+                    0.0,
+                    Collider::cuboid(half_size, half_size),
+                ),
+            ]),
+            BlockType::L => Collider::compound(vec![
+                (
+                    Vec2::new(0.0, 0.0),
+                    0.0,
+                    Collider::cuboid(half_size * 3.0, half_size),
+                ),
+                (
+                    Vec2::new(size, size),
+                    0.0,
+                    Collider::cuboid(half_size, half_size),
+                ),
+            ]),
+        }
     }
 
     pub fn block_width(&self) -> f32 {
@@ -131,7 +185,7 @@ impl BlockType {
     }
 
     pub fn width(&self) -> f32 {
-        self.block_width() * 20.0
+        self.block_width() * BLOCK_SIZE
     }
 }
 
@@ -182,17 +236,17 @@ impl Block {
                 RigidBody::KinematicVelocityBased,
                 block_type.build_collider(),
                 ActiveEvents::COLLISION_EVENTS,
-                ActiveCollisionTypes::default() | ActiveCollisionTypes::KINEMATIC_KINEMATIC,
-                ColliderMassProperties::Mass(0.1),
-                Friction::coefficient(0.5),
+                //ColliderMassProperties::Mass(1.0),
+                //Friction::coefficient(0.2),
                 Aiming,
                 Velocity::linear(Vec2::new(0.0, -0.0)),
                 Sensor,
-                Sleeping {
-                    linear_threshold: 10.0,
-                    angular_threshold: 10.0,
-                    sleeping: false,
-                },
+                Sleeping::disabled(),
+                // Sleeping {
+                //     linear_threshold: 10.0,
+                //     angular_threshold: 10.0,
+                //     sleeping: false,
+                // },
                 //ExternalImpulse::default(),
             ))
             .id();
@@ -258,7 +312,7 @@ pub fn block_stable_system(
     mut event: EventWriter<CaughtBlock>,
 ) {
     for (entity, velocity) in query.iter_mut() {
-        if velocity.linvel.length() < 0.1 && velocity.angvel.abs() < 0.01 {
+        if velocity.linvel.length() < 1.0 && velocity.angvel.abs() < 0.1 {
             event.send(CaughtBlock { entity });
             commands.entity(entity).remove::<Falling>();
         }
@@ -278,7 +332,7 @@ pub fn rotate_aimed_blocks(
     }
 }
 
-pub fn despawn_droped_blocks(
+pub fn despawn_dropped_blocks(
     mut commands: Commands,
     mut query: Query<(Entity, &Transform, With<Block>)>,
     mut base_query: Query<(&Transform, With<Base>)>,

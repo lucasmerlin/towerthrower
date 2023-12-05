@@ -9,7 +9,7 @@ mod throw;
 
 use crate::base::{base_position, setup_base};
 use crate::block::{
-    block_stable_system, despawn_droped_blocks, despawn_target_beam, falling_block_collision,
+    block_stable_system, despawn_dropped_blocks, despawn_target_beam, falling_block_collision,
     rotate_aimed_blocks, CaughtBlock, FallingBlockCollision, SpawnTimer,
 };
 use crate::camera_movement::{camera_movement_system, CameraMovement};
@@ -19,11 +19,15 @@ use crate::launch_platform::{LaunchPlatform, LaunchPlatformPlugin};
 use crate::throw::ThrowPlugin;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
+use bevy_framepace::{FramePaceStats, FramepacePlugin, FramepaceSettings, Limiter};
 use bevy_rapier2d::prelude::*;
 
 /// Used to help identify our main camera
 #[derive(Component)]
 pub struct MainCamera;
+
+pub const PIXELS_PER_METER: f32 = 100.0;
+pub const GRAVITY: f32 = -9.81 * PIXELS_PER_METER;
 
 fn main() {
     App::new()
@@ -34,11 +38,12 @@ fn main() {
         )))
         .add_plugins((
             DefaultPlugins,
-            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(1000.0),
+            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER),
             RapierDebugRenderPlugin::default(),
             EffectPlugin,
             ThrowPlugin,
             LaunchPlatformPlugin,
+            FramepacePlugin,
         ))
         .add_systems(Startup, (setup_graphics, setup_physics, setup_base))
         .add_systems(
@@ -48,11 +53,11 @@ fn main() {
                 //base_position,
                 //block_collision,
                 rotate_aimed_blocks,
-                despawn_droped_blocks,
                 camera_movement_system,
                 despawn_target_beam,
                 falling_block_collision,
                 block_stable_system,
+                despawn_dropped_blocks,
             ),
         )
         // .add_systems(PostUpdate, )
@@ -80,8 +85,31 @@ pub fn setup_graphics(mut commands: Commands, mut assets: ResMut<AssetServer>) {
     ));
 }
 
-pub fn setup_physics(mut commands: Commands, mut gravity_scale: ResMut<RapierConfiguration>) {
-    gravity_scale.gravity = Vec2::Y * -9.81 * 100.0;
+pub fn setup_physics(
+    mut commands: Commands,
+    mut config: ResMut<RapierConfiguration>,
+    mut context: ResMut<RapierContext>,
+    mut frame_pace_settings: ResMut<FramepaceSettings>,
+) {
+    let framerate = 60.0;
+    config.gravity = Vec2::Y * GRAVITY;
+    config.timestep_mode = TimestepMode::Fixed {
+        dt: 1.0 / framerate,
+        substeps: 1,
+    };
+
+    frame_pace_settings.limiter = Limiter::from_framerate(framerate as f64);
+
+    // config.timestep_mode = TimestepMode::Interpolated {
+    //     substeps: 1,
+    //     dt: 1.0 / 60.0,
+    //     time_scale: 1.0,
+    // };
+
+    // context.integration_parameters.max_velocity_iterations = 30;
+    // context
+    //     .integration_parameters
+    //     .max_velocity_friction_iterations = 30;
 
     // /*
     //  * Ground

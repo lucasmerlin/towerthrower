@@ -8,6 +8,7 @@ use crate::block::{Aiming, Block, BlockType, Falling};
 use crate::camera_movement::CameraMovement;
 use crate::cursor_system::CursorCoords;
 use crate::launch_platform::LaunchPlatform;
+use crate::GRAVITY;
 
 pub struct ThrowPlugin;
 
@@ -98,7 +99,7 @@ pub fn simulate_throw_system(
         let shape = aimed_collider.clone();
         let mut transform = aimed_transform.clone();
         let mut velocity = aim.velocity();
-        let mut acceleration = Vec2::Y * -9.81 * 100.0;
+        let mut acceleration = Vec2::Y * GRAVITY;
 
         let mut hit = false;
 
@@ -175,13 +176,18 @@ pub fn create_aiming_block(
     mut query: Query<(Entity), With<Aiming>>,
     mut assets: ResMut<AssetServer>,
     mut camera_movement: ResMut<CameraMovement>,
+    mut launch_platform_query: Query<&Transform, With<LaunchPlatform>>,
 ) {
     if query.iter().count() == 0 {
         if let Some(block_type) = throw_queue.queue.pop() {
+            let launch_platform_transform = launch_platform_query.single();
             Block::spawn(
                 &mut commands,
                 block_type,
-                Vec2::new(400.0, -299.0 + camera_movement.height),
+                Vec2::new(
+                    launch_platform_transform.translation.x,
+                    launch_platform_transform.translation.y + 35.0,
+                ),
                 &mut assets,
             );
         }
@@ -285,7 +291,7 @@ fn calculate_shot_for_target(
 ) -> Option<Vec2> {
     let xp = target.x - launch_pos.x;
     let y = target.y - launch_pos.y;
-    let g = -9.81 * 100.0;
+    let g = GRAVITY;
     let v = velocity;
     let angle1: f32;
     let angle2: f32;
