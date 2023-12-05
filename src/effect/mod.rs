@@ -27,7 +27,7 @@ pub enum EffectType {
 }
 
 pub fn add_random_effect(commands: &mut Commands, assets: &mut AssetServer, entity: Entity) {
-    let rand = rand::random::<u8>() % 20;
+    let rand = rand::random::<u8>() % 10;
     //let rand = 2;
     let res = match rand {
         0 => Some((
@@ -41,13 +41,13 @@ pub fn add_random_effect(commands: &mut Commands, assets: &mut AssetServer, enti
                 .id(),
             "fixed.png",
         )),
-        2 => Some((
-            commands
-                .entity(entity)
-                .insert(magnetic::MagneticEffect::default())
-                .id(),
-            "magnet-on.png",
-        )),
+        // 2 => Some((
+        //     commands
+        //         .entity(entity)
+        //         .insert(magnetic::MagneticEffect::default())
+        //         .id(),
+        //     "magnet-on.png",
+        // )),
         _ => None,
     };
 

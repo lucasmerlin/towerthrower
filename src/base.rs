@@ -9,7 +9,7 @@ pub struct Base;
 
 pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>) {
     let height = 10.0;
-    let size = 200.0;
+    let size = 80.0;
 
     commands
         .spawn((

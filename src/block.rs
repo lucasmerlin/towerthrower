@@ -1,5 +1,6 @@
 use std::f32::consts::FRAC_PI_2;
 
+use bevy::prelude::KeyCode::Sleep;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -153,7 +154,12 @@ pub struct Aiming;
 #[derive(Event)]
 pub struct CaughtBlock {
     pub entity: Entity,
-    pub caught_by: Entity,
+}
+
+#[derive(Event)]
+pub struct FallingBlockCollision {
+    pub falling: Entity,
+    pub hit: Entity,
 }
 
 impl Block {
@@ -182,31 +188,35 @@ impl Block {
                 Aiming,
                 Velocity::linear(Vec2::new(0.0, -0.0)),
                 Sensor,
-                Sleeping::disabled(),
-                ExternalImpulse::default(),
+                Sleeping {
+                    linear_threshold: 10.0,
+                    angular_threshold: 10.0,
+                    sleeping: false,
+                },
+                //ExternalImpulse::default(),
             ))
             .id();
 
-        commands.entity(entity).with_children(|parent| {
-            parent.spawn((
-                SpriteBundle {
-                    sprite: Sprite {
-                        color: Color::rgba_u8(203, 158, 255, 100),
-                        custom_size: Some(Vec2::new(width, 100000.0)),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                },
-                TargetBeam,
-            ));
-        });
+        // commands.entity(entity).with_children(|parent| {
+        //     parent.spawn((
+        //         SpriteBundle {
+        //             sprite: Sprite {
+        //                 color: Color::rgba_u8(203, 158, 255, 100),
+        //                 custom_size: Some(Vec2::new(width, 100000.0)),
+        //                 ..Default::default()
+        //             },
+        //             ..Default::default()
+        //         },
+        //         TargetBeam,
+        //     ));
+        // });
 
         add_random_effect(&mut commands, assets, entity);
         entity
     }
 }
 
-pub fn block_collision(
+pub fn falling_block_collision(
     mut commands: Commands,
     mut event_reader: EventReader<CollisionEvent>,
     mut query: Query<(Entity, &mut Block, &mut Velocity, &mut Transform, &Falling)>,
@@ -214,7 +224,7 @@ pub fn block_collision(
         (Entity),
         (Without<Falling>, Without<Aiming>, Without<TargetIndicator>),
     >,
-    mut stopped_falling_events: EventWriter<CaughtBlock>,
+    mut falling_block_collision: EventWriter<FallingBlockCollision>,
 ) {
     for event in event_reader.iter() {
         match event {
@@ -230,16 +240,9 @@ pub fn block_collision(
                         if let Ok((entity, mut block, mut velocity, mut transform, _)) =
                             query.get_mut(*entity)
                         {
-                            println!("Caught block {:?}", entity);
-                            //*velocity = Velocity::linear(Vec2::ZERO);
-                            //transform.translation.y += 1.0;
-                            commands.entity(entity).remove::<Falling>();
-                            //commands.entity(entity).remove::<Sensor>();
-                            //commands.entity(entity).insert(RigidBody::Dynamic);
-
-                            stopped_falling_events.send(CaughtBlock {
-                                entity,
-                                caught_by: *catcher,
+                            falling_block_collision.send(FallingBlockCollision {
+                                falling: entity,
+                                hit: *catcher,
                             });
                         }
                     });
@@ -249,11 +252,25 @@ pub fn block_collision(
     }
 }
 
-pub fn rotate_falling_blocks(
-    mut query: Query<(Entity, &mut Transform, With<Block>, With<Falling>)>,
-    key_code: Res<Input<KeyCode>>,
+pub fn block_stable_system(
+    mut commands: Commands,
+    mut query: Query<(Entity, &Velocity), With<Falling>>,
+    mut event: EventWriter<CaughtBlock>,
 ) {
-    if key_code.just_pressed(KeyCode::Up) || key_code.just_pressed(KeyCode::Space) {
+    for (entity, velocity) in query.iter_mut() {
+        if velocity.linvel.length() < 0.1 && velocity.angvel.abs() < 0.01 {
+            event.send(CaughtBlock { entity });
+            commands.entity(entity).remove::<Falling>();
+        }
+    }
+}
+
+pub fn rotate_aimed_blocks(
+    mut query: Query<(Entity, &mut Transform, With<Block>, With<Aiming>)>,
+    key_code: Res<Input<KeyCode>>,
+    mouse_button: Res<Input<MouseButton>>,
+) {
+    if mouse_button.just_pressed(MouseButton::Right) {
         for (entity, mut transform, ..) in query.iter_mut() {
             let vec3 = transform.translation;
             transform.rotate_around(vec3, Quat::from_rotation_z(FRAC_PI_2));
