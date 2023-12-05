@@ -4,18 +4,17 @@ mod block_spawner;
 mod camera_movement;
 mod cursor_system;
 mod effect;
+mod throw;
 
 use crate::base::{base_position, setup_base};
 use crate::block::{
     block_collision, despawn_droped_blocks, despawn_target_beam, rotate_falling_blocks,
     CaughtBlock, SpawnTimer,
 };
-use crate::block_spawner::{
-    remove_not_falling_blocks, spawn_missing_blocks, untrack_despawned_blocks, BlockSpawner,
-};
 use crate::camera_movement::{camera_movement_system, CameraMovement};
-use crate::cursor_system::{my_cursor_system, MyWorldCoords};
+use crate::cursor_system::{my_cursor_system, CursorCoords};
 use crate::effect::EffectPlugin;
+use crate::throw::ThrowPlugin;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
 use bevy_rapier2d::prelude::*;
@@ -36,26 +35,24 @@ fn main() {
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(1000.0),
             RapierDebugRenderPlugin::default(),
             EffectPlugin,
+            ThrowPlugin,
         ))
         .add_systems(Startup, (setup_graphics, setup_physics, setup_base))
         .add_systems(
             Update,
             (
                 my_cursor_system,
-                base_position,
+                //base_position,
                 block_collision,
-                spawn_missing_blocks,
-                remove_not_falling_blocks,
                 rotate_falling_blocks,
                 despawn_droped_blocks,
                 camera_movement_system,
                 despawn_target_beam,
             ),
         )
-        .add_systems(PostUpdate, (untrack_despawned_blocks))
-        .init_resource::<MyWorldCoords>()
+        // .add_systems(PostUpdate, )
+        .init_resource::<CursorCoords>()
         .init_resource::<SpawnTimer>()
-        .init_resource::<BlockSpawner>()
         .init_resource::<CameraMovement>()
         .add_event::<CaughtBlock>()
         .run();

@@ -5,6 +5,7 @@ use bevy_rapier2d::prelude::*;
 
 use crate::base::Base;
 use crate::effect::add_random_effect;
+use crate::throw::TargetIndicator;
 
 #[derive(Resource, Debug)]
 pub struct SpawnTimer(pub Timer);
@@ -144,6 +145,10 @@ pub struct Falling;
 #[derive(Component)]
 pub struct TargetBeam;
 
+// This is a marker component that is set while the block is being aimed
+#[derive(Component)]
+pub struct Aiming;
+
 /// Event that is fired when a block hits some other object and quits the falling state
 #[derive(Event)]
 pub struct CaughtBlock {
@@ -173,9 +178,9 @@ impl Block {
                 ActiveEvents::COLLISION_EVENTS,
                 ActiveCollisionTypes::default() | ActiveCollisionTypes::KINEMATIC_KINEMATIC,
                 ColliderMassProperties::Mass(0.1),
-                Friction::coefficient(1.0),
-                Falling,
-                Velocity::linear(Vec2::new(0.0, -150.0)),
+                Friction::coefficient(0.5),
+                Aiming,
+                Velocity::linear(Vec2::new(0.0, -0.0)),
                 Sensor,
                 Sleeping::disabled(),
                 ExternalImpulse::default(),
@@ -205,6 +210,10 @@ pub fn block_collision(
     mut commands: Commands,
     mut event_reader: EventReader<CollisionEvent>,
     mut query: Query<(Entity, &mut Block, &mut Velocity, &mut Transform, &Falling)>,
+    mut catcher_query: Query<
+        (Entity),
+        (Without<Falling>, Without<Aiming>, Without<TargetIndicator>),
+    >,
     mut stopped_falling_events: EventWriter<CaughtBlock>,
 ) {
     for event in event_reader.iter() {
@@ -213,14 +222,20 @@ pub fn block_collision(
                 [(collider1, collider2), (collider2, collider1)]
                     .into_iter()
                     .for_each(|(entity, catcher)| {
+                        let mut valid_catcher = catcher_query.get_mut(*catcher);
+                        if valid_catcher.is_err() {
+                            return;
+                        }
+
                         if let Ok((entity, mut block, mut velocity, mut transform, _)) =
                             query.get_mut(*entity)
                         {
-                            *velocity = Velocity::linear(Vec2::ZERO);
-                            transform.translation.y += 1.0;
+                            println!("Caught block {:?}", entity);
+                            //*velocity = Velocity::linear(Vec2::ZERO);
+                            //transform.translation.y += 1.0;
                             commands.entity(entity).remove::<Falling>();
-                            commands.entity(entity).remove::<Sensor>();
-                            commands.entity(entity).insert(RigidBody::Dynamic);
+                            //commands.entity(entity).remove::<Sensor>();
+                            //commands.entity(entity).insert(RigidBody::Dynamic);
 
                             stopped_falling_events.send(CaughtBlock {
                                 entity,

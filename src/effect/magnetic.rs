@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::block::{Block, Falling};
+use crate::block::{Aiming, Block, Falling};
+use crate::throw::TargetIndicator;
 
 pub struct MagneticPlugin;
 
@@ -28,7 +29,10 @@ impl Default for MagneticEffect {
 
 /// Should apply a force to all blocks in range, pulling them towards the center of the block
 pub fn magnetic_effect_system(
-    mut magnets_query: Query<(&Transform, &mut ExternalImpulse, &MagneticEffect), Without<Falling>>,
+    mut magnets_query: Query<
+        (&Transform, &mut ExternalImpulse, &MagneticEffect),
+        (Without<Falling>, Without<Aiming>, Without<TargetIndicator>),
+    >,
     mut blocks_query: Query<
         (&Transform, &mut ExternalImpulse),
         (Without<MagneticEffect>, With<Block>),

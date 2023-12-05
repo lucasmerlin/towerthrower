@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::geometry::Collider;
 use bevy_rapier2d::prelude::{Friction, RigidBody, Velocity};
 
-use crate::cursor_system::MyWorldCoords;
+use crate::cursor_system::CursorCoords;
 
 #[derive(Component)]
 pub struct Base;
@@ -20,7 +20,7 @@ pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>) {
             ),
             RigidBody::KinematicVelocityBased,
             Collider::cuboid(size, height),
-            Friction::coefficient(1.0),
+            Friction::coefficient(0.5),
             Velocity::linear(Vec2::new(0.0, 0.0)),
         ))
         .with_children(|parent| {
