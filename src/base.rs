@@ -3,23 +3,33 @@ use bevy_rapier2d::geometry::Collider;
 use bevy_rapier2d::prelude::{Friction, RigidBody, Velocity};
 
 use crate::cursor_system::CursorCoords;
+use crate::level::Level;
+use crate::state::LevelState;
+
+pub struct BasePlugin;
+
+impl Plugin for BasePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(LevelState::Playing), setup_base);
+    }
+}
 
 #[derive(Component)]
 pub struct Base;
 
-pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>) {
-    let height = 10.0;
-    let size = 80.0;
+pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>, mut level: Res<Level>) {
+    let height = 20.0;
+    let width = level.base_width;
 
     commands
         .spawn((
             Base,
             SpatialBundle::from(
-                Transform::from_xyz(0.0, 30.0 * -height, 0.0)
+                Transform::from_xyz(0.0, height / 2.0, 0.0)
                     .with_rotation(Quat::from_rotation_z(0.0)),
             ),
             RigidBody::KinematicVelocityBased,
-            Collider::cuboid(size, height),
+            Collider::cuboid(width / 2.0, height / 2.0),
             Friction::coefficient(0.5),
             Velocity::linear(Vec2::new(0.0, 0.0)),
         ))

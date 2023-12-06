@@ -6,6 +6,7 @@ use bevy_rapier2d::prelude::*;
 
 use crate::base::Base;
 use crate::effect::add_random_effect;
+use crate::floor::Floor;
 use crate::throw::TargetIndicator;
 
 #[derive(Resource, Debug)]
@@ -29,7 +30,7 @@ pub enum BlockType {
     L,
 }
 
-const BLOCK_SIZE: f32 = 20.0;
+pub const BLOCK_SIZE: f32 = 20.0;
 
 impl BlockType {
     pub fn random() -> Self {
@@ -194,6 +195,8 @@ pub struct Block {
     pub block_type: BlockType,
 }
 
+pub const BLOCK_COLLISION_GROUP: Group = Group::GROUP_1;
+
 #[derive(Component)]
 pub struct Falling;
 
@@ -248,6 +251,10 @@ impl Block {
                 //     sleeping: false,
                 // },
                 //ExternalImpulse::default(),
+                SolverGroups {
+                    memberships: BLOCK_COLLISION_GROUP,
+                    filters: Group::ALL,
+                },
             ))
             .id();
 
@@ -335,11 +342,11 @@ pub fn rotate_aimed_blocks(
 pub fn despawn_dropped_blocks(
     mut commands: Commands,
     mut query: Query<(Entity, &Transform, With<Block>)>,
-    mut base_query: Query<(&Transform, With<Base>)>,
+    mut floor_query: Query<(&Transform, With<Floor>)>,
 ) {
-    let (base_transform, _) = base_query.single();
+    let (floor_transform, _) = floor_query.single();
     for (entity, mut transform, ..) in query.iter_mut() {
-        if transform.translation.y < base_transform.translation.y {
+        if transform.translation.y < floor_transform.translation.y {
             commands.entity(entity).despawn_recursive();
         }
     }

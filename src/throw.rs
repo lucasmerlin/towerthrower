@@ -254,11 +254,19 @@ pub fn update_aim_from_mouse_position_system(
         let mut force = aim.force;
 
         for _ in 0..1000 {
+            let switch_aim = input.pressed(KeyCode::ControlLeft);
+
+            let angle =
+                Vec2::Y.angle_between((transform.translation.xy() - mouse_position).normalize());
+
+            // True when the mouse is in a 45 degree angle below the platform
+            let use_direct_aim = angle < PI / 4.0 && angle > -PI / 4.0;
+
             shot = calculate_shot_for_target(
                 transform.translation.xy(),
                 mouse_position,
                 force,
-                input.pressed(KeyCode::ControlLeft),
+                switch_aim != use_direct_aim,
             );
             if shot.is_none() {
                 force += 10.0;

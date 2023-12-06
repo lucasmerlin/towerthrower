@@ -3,19 +3,29 @@ mod block;
 mod block_spawner;
 mod camera_movement;
 mod cursor_system;
+mod debris;
 mod effect;
+mod floor;
 mod launch_platform;
+mod level;
+mod state;
+mod target_height_indicator;
 mod throw;
 
-use crate::base::{base_position, setup_base};
+use crate::base::{base_position, setup_base, BasePlugin};
 use crate::block::{
     block_stable_system, despawn_dropped_blocks, despawn_target_beam, falling_block_collision,
     rotate_aimed_blocks, CaughtBlock, FallingBlockCollision, SpawnTimer,
 };
 use crate::camera_movement::{camera_movement_system, CameraMovement};
 use crate::cursor_system::{my_cursor_system, CursorCoords};
+use crate::debris::DebrisPlugin;
 use crate::effect::EffectPlugin;
+use crate::floor::FloorPlugin;
 use crate::launch_platform::{LaunchPlatform, LaunchPlatformPlugin};
+use crate::level::LevelPlugin;
+use crate::state::StatePlugin;
+use crate::target_height_indicator::TargetHeightIndicatorPlugin;
 use crate::throw::ThrowPlugin;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
@@ -40,17 +50,22 @@ fn main() {
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER),
             RapierDebugRenderPlugin::default(),
+            LevelPlugin,
+            StatePlugin,
+            BasePlugin,
+            FloorPlugin,
+            DebrisPlugin,
             EffectPlugin,
             ThrowPlugin,
             LaunchPlatformPlugin,
             FramepacePlugin,
+            TargetHeightIndicatorPlugin,
         ))
-        .add_systems(Startup, (setup_graphics, setup_physics, setup_base))
+        .add_systems(Startup, (setup_graphics, setup_physics))
         .add_systems(
             Update,
             (
                 my_cursor_system,
-                //base_position,
                 //block_collision,
                 rotate_aimed_blocks,
                 camera_movement_system,
@@ -110,42 +125,4 @@ pub fn setup_physics(
     // context
     //     .integration_parameters
     //     .max_velocity_friction_iterations = 30;
-
-    // /*
-    //  * Ground
-    //  */
-    // let ground_size = 500.0;
-    // let ground_height = 10.0;
-    //
-    // commands.spawn((
-    //     TransformBundle::from(Transform::from_xyz(0.0, 10.0 * -ground_height, 0.0)),
-    //     Collider::cuboid(ground_size, ground_height),
-    // ));
-
-    // /*
-    //  * Create the cubes
-    //  */
-    // let num = 8;
-    // let rad = 10.0;
-    //
-    // let shift = rad * 1.5 + rad;
-    // let centerx = shift * (num / 2) as f32;
-    // let centery = shift / 2.0;
-    //
-    // let mut offset = -(num as f32) * (rad * 2.0 + rad) * 0.5;
-    //
-    // for j in 0usize..2000 {
-    //     for i in 0..num {
-    //         let x = i as f32 * shift - centerx + offset;
-    //         let y = j as f32 * shift + centery + 30.0;
-    //
-    //         commands.spawn((
-    //             TransformBundle::from(Transform::from_xyz(x, y, 0.0)),
-    //             RigidBody::Dynamic,
-    //             Collider::cuboid(rad, rad),
-    //         ));
-    //     }
-    //
-    //     offset -= 0.05 * rad * (num as f32 - 1.0);
-    // }
 }
