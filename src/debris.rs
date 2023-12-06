@@ -1,4 +1,4 @@
-use crate::block::{Block, BLOCK_COLLISION_GROUP, BLOCK_SIZE};
+use crate::block::{Block, DestroyBlockOnContact, BLOCK_COLLISION_GROUP, BLOCK_SIZE};
 use crate::floor::Floor;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -8,12 +8,14 @@ pub struct DebrisPlugin;
 
 impl Plugin for DebrisPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (block_to_debris_system, despawn_debris_system));
+        app.add_systems(Update, (block_to_debris_system));
     }
 }
 
 #[derive(Component, Debug)]
 pub struct Debris(Timer, Timer);
+
+pub const DEBRIS_COLLISION_GROUP: Group = Group::GROUP_3;
 
 impl Default for Debris {
     fn default() -> Self {
@@ -28,7 +30,7 @@ impl Default for Debris {
 pub fn block_to_debris_system(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
-    mut floor_query: Query<&mut Floor>,
+    mut floor_query: Query<&mut DestroyBlockOnContact>,
     mut block_query: Query<(Entity, &Block, &Transform, &Velocity)>,
 ) {
     for event in collision_events.read() {
@@ -57,12 +59,13 @@ pub fn block_to_debris_system(
                                 Collider::cuboid(BLOCK_SIZE / 2.0, BLOCK_SIZE / 2.0),
                                 Friction::coefficient(0.5),
                                 Velocity::linear(Vec2::new(velocity.linvel.x, velocity.linvel.y)),
-                                SolverGroups {
-                                    memberships: Group::ALL,
+                                ExternalImpulse::default(),
+                                //Dominance::group(-1),
+                                CollisionGroups {
+                                    memberships: DEBRIS_COLLISION_GROUP,
                                     filters: {
                                         let mut group = Group::ALL;
                                         group.remove(BLOCK_COLLISION_GROUP);
-                                        println!("group hex: {:x}", group.bits());
                                         group
                                     },
                                 },

@@ -1,3 +1,4 @@
+use crate::block::DestroyBlockOnContact;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -31,6 +32,7 @@ pub fn setup_floor(mut commands: Commands) {
             ..Default::default()
         },
         Floor,
+        DestroyBlockOnContact,
         RigidBody::Fixed,
         collider,
         CollisionGroups {

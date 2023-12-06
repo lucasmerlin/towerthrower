@@ -94,7 +94,7 @@ pub fn simulate_throw_system(
 
     if let Ok((aimed, aimed_collider, aimed_transform)) = aimed_block.get_single() {
         let mut t = 0.0;
-        let dt = 0.001;
+        let dt = 0.005;
 
         let shape = aimed_collider.clone();
         let mut transform = aimed_transform.clone();

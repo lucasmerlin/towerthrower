@@ -207,6 +207,10 @@ pub struct TargetBeam;
 #[derive(Component)]
 pub struct Aiming;
 
+/// Marker component that will cause blocks to be destroyed on contact
+#[derive(Component)]
+pub struct DestroyBlockOnContact;
+
 /// Event that is fired when a block hits some other object and quits the falling state
 #[derive(Event)]
 pub struct CaughtBlock {
@@ -250,8 +254,8 @@ impl Block {
                 //     angular_threshold: 10.0,
                 //     sleeping: false,
                 // },
-                //ExternalImpulse::default(),
-                SolverGroups {
+                ExternalImpulse::default(),
+                CollisionGroups {
                     memberships: BLOCK_COLLISION_GROUP,
                     filters: Group::ALL,
                 },

@@ -5,6 +5,7 @@ mod camera_movement;
 mod cursor_system;
 mod debris;
 mod effect;
+mod environment;
 mod floor;
 mod launch_platform;
 mod level;
@@ -21,6 +22,7 @@ use crate::camera_movement::{camera_movement_system, CameraMovement};
 use crate::cursor_system::{my_cursor_system, CursorCoords};
 use crate::debris::DebrisPlugin;
 use crate::effect::EffectPlugin;
+use crate::environment::EnvironmentPlugin;
 use crate::floor::FloorPlugin;
 use crate::launch_platform::{LaunchPlatform, LaunchPlatformPlugin};
 use crate::level::LevelPlugin;
@@ -41,11 +43,7 @@ pub const GRAVITY: f32 = -9.81 * PIXELS_PER_METER;
 
 fn main() {
     App::new()
-        .insert_resource(ClearColor(Color::rgb(
-            0xF9 as f32 / 255.0,
-            0xF9 as f32 / 255.0,
-            0xFF as f32 / 255.0,
-        )))
+        .insert_resource(ClearColor(Color::rgb_u8(0, 148, 255)))
         .add_plugins((
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER),
@@ -55,6 +53,7 @@ fn main() {
             BasePlugin,
             FloorPlugin,
             DebrisPlugin,
+            EnvironmentPlugin,
             EffectPlugin,
             ThrowPlugin,
             LaunchPlatformPlugin,
@@ -73,6 +72,7 @@ fn main() {
                 falling_block_collision,
                 block_stable_system,
                 despawn_dropped_blocks,
+                despawn_entities,
             ),
         )
         // .add_systems(PostUpdate, )
@@ -125,4 +125,15 @@ pub fn setup_physics(
     // context
     //     .integration_parameters
     //     .max_velocity_friction_iterations = 30;
+}
+
+pub fn despawn_entities(mut commands: Commands, mut query: Query<(Entity, &Transform)>) {
+    for (entity, transform) in query.iter_mut() {
+        if transform.translation.x < -2000.0
+            || transform.translation.x > 2000.0
+            || transform.translation.y < -2000.0
+        {
+            commands.entity(entity).despawn();
+        }
+    }
 }
