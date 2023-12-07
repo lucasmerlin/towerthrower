@@ -21,6 +21,10 @@ impl Plugin for ThrowPlugin {
         )
         .add_systems(OnExit(LevelState::Playing), remove_simulation_system)
         .add_systems(
+            PreUpdate,
+            (simulate_throw_system,).run_if(in_state(LevelState::Playing)),
+        )
+        .add_systems(
             Update,
             (
                 fill_throw_queue,
@@ -29,7 +33,6 @@ impl Plugin for ThrowPlugin {
                 mousewheel_aim_force_system,
                 throw_system,
                 update_aiming_block_position,
-                simulate_throw_system,
             )
                 .run_if(in_state(LevelState::Playing)),
         )

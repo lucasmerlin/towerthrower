@@ -1,3 +1,25 @@
+use bevy::asset::AssetMetaCheck;
+use bevy::prelude::*;
+use bevy::render::camera::ScalingMode;
+use bevy_egui::EguiPlugin;
+use bevy_rapier2d::prelude::*;
+
+use crate::base::BasePlugin;
+use crate::block::{BlockPlugin, CaughtBlock, FallingBlockCollision, SpawnTimer};
+use crate::camera_movement::{camera_movement_system, CameraMovement};
+use crate::cursor_system::{my_cursor_system, CursorCoords};
+use crate::debris::DebrisPlugin;
+use crate::effect::EffectPlugin;
+use crate::environment::EnvironmentPlugin;
+use crate::floor::FloorPlugin;
+use crate::launch_platform::LaunchPlatformPlugin;
+use crate::level::LevelPlugin;
+use crate::level_ui::LevelUiPlugin;
+use crate::state::StatePlugin;
+use crate::target_height_indicator::TargetHeightIndicatorPlugin;
+use crate::throw::ThrowPlugin;
+use crate::ui::UiPlugin;
+
 mod base;
 mod block;
 mod block_spawner;
@@ -15,30 +37,6 @@ mod target_height_indicator;
 mod throw;
 mod ui;
 
-use crate::base::{base_position, setup_base, BasePlugin};
-use crate::block::{
-    block_stable_system, despawn_dropped_blocks, despawn_target_beam, falling_block_collision,
-    rotate_aimed_blocks, BlockPlugin, CaughtBlock, FallingBlockCollision, SpawnTimer,
-};
-use crate::camera_movement::{camera_movement_system, CameraMovement};
-use crate::cursor_system::{my_cursor_system, CursorCoords};
-use crate::debris::DebrisPlugin;
-use crate::effect::EffectPlugin;
-use crate::environment::EnvironmentPlugin;
-use crate::floor::FloorPlugin;
-use crate::launch_platform::{LaunchPlatform, LaunchPlatformPlugin};
-use crate::level::LevelPlugin;
-use crate::level_ui::LevelUiPlugin;
-use crate::state::StatePlugin;
-use crate::target_height_indicator::TargetHeightIndicatorPlugin;
-use crate::throw::ThrowPlugin;
-use crate::ui::UiPlugin;
-use bevy::prelude::*;
-use bevy::render::camera::ScalingMode;
-use bevy_egui::EguiPlugin;
-use bevy_framepace::{FramePaceStats, FramepacePlugin, FramepaceSettings, Limiter};
-use bevy_rapier2d::prelude::*;
-
 /// Used to help identify our main camera
 #[derive(Component)]
 pub struct MainCamera;
@@ -51,8 +49,16 @@ fn main() {
         .insert_resource(ClearColor(Color::rgb_u8(0, 148, 255)))
         .add_plugins((
             // Bevy plugins
-            DefaultPlugins,
-            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER),
+            DefaultPlugins.set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Tower Thrower".into(),
+                    fit_canvas_to_parent: true,
+                    ..default()
+                }),
+                ..default()
+            }),
+            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER)
+                .in_fixed_schedule(),
             RapierDebugRenderPlugin::default(),
             EguiPlugin,
             // Game plugins
@@ -69,7 +75,6 @@ fn main() {
             (
                 ThrowPlugin,
                 LaunchPlatformPlugin,
-                FramepacePlugin,
                 TargetHeightIndicatorPlugin,
                 LevelUiPlugin,
                 UiPlugin,
@@ -89,6 +94,7 @@ fn main() {
         .init_resource::<CursorCoords>()
         .init_resource::<SpawnTimer>()
         .init_resource::<CameraMovement>()
+        .insert_resource(AssetMetaCheck::Never)
         .add_event::<CaughtBlock>()
         .add_event::<FallingBlockCollision>()
         .run();
@@ -114,7 +120,6 @@ pub fn setup_physics(
     mut commands: Commands,
     mut config: ResMut<RapierConfiguration>,
     mut context: ResMut<RapierContext>,
-    mut frame_pace_settings: ResMut<FramepaceSettings>,
 ) {
     let framerate = 60.0;
     config.gravity = Vec2::Y * GRAVITY;
@@ -123,7 +128,7 @@ pub fn setup_physics(
         substeps: 1,
     };
 
-    frame_pace_settings.limiter = Limiter::from_framerate(framerate as f64);
+    //frame_pace_settings.limiter = Limiter::from_framerate(framerate as f64);
 
     // config.timestep_mode = TimestepMode::Interpolated {
     //     substeps: 1,
