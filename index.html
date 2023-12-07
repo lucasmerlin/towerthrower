@@ -1,0 +1,27 @@
+<!DOCTYPE html><html><head>
+    
+    
+    <script src="restart-audio-context.js"></script>
+<style>
+    html, head, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+</style>
+<link rel="preload" href="/towerthrower/stackoverfall-2b75b91ef17a193b_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/towerthrower/stackoverfall-2b75b91ef17a193b.js"></head>
+
+
+
+<body>
+<script>
+    document.oncontextmenu = function (e) {
+        e.preventDefault();
+    };
+</script>
+
+
+<script type="module">import init from '/towerthrower/stackoverfall-2b75b91ef17a193b.js';init('/towerthrower/stackoverfall-2b75b91ef17a193b_bg.wasm');</script></body></html>
