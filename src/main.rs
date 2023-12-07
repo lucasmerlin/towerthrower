@@ -23,7 +23,6 @@ use crate::ui::UiPlugin;
 
 mod base;
 mod block;
-mod block_spawner;
 mod camera_movement;
 mod cursor_system;
 mod debris;
