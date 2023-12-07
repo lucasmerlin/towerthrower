@@ -25,7 +25,7 @@ pub fn spawn_launch_platform_system(mut commands: Commands, mut assets: ResMut<A
         .spawn((
             LaunchPlatform,
             LevelLifecycle,
-            SpatialBundle::from(Transform::from_translation(Vec3::new(0.0, 0.0, 0.0))),
+            SpatialBundle::from(Transform::from_translation(Vec3::new(150.0, 20.0, 0.0))),
             RigidBody::KinematicVelocityBased,
             Velocity::zero(),
             //collider,

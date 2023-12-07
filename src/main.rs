@@ -1,6 +1,7 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
+use bevy::window::WindowResolution;
 use bevy_egui::EguiPlugin;
 use bevy_rapier2d::prelude::*;
 
@@ -53,6 +54,8 @@ fn main() {
                 primary_window: Some(Window {
                     title: "Tower Thrower".into(),
                     fit_canvas_to_parent: true,
+                    resolution: WindowResolution::new(1280.0, 720.0)
+                        .with_scale_factor_override(1.0),
                     ..default()
                 }),
                 ..default()

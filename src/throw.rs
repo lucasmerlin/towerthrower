@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use bevy::input::mouse::MouseWheel;
+use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -309,7 +309,14 @@ pub fn mousewheel_aim_force_system(
     mut mouse_wheel_input: EventReader<MouseWheel>,
 ) {
     for event in mouse_wheel_input.read() {
-        aim.force += event.y * 10.0;
+        match event.unit {
+            MouseScrollUnit::Pixel => {
+                aim.force += event.y * 1.0;
+            }
+            MouseScrollUnit::Line => {
+                aim.force += event.y * 10.0;
+            }
+        }
     }
 }
 
@@ -347,10 +354,14 @@ pub fn throw_system(
     mut commands: Commands,
     mut input: ResMut<Input<KeyCode>>,
     mut mouse_button_input: ResMut<Input<MouseButton>>,
+    mut touch_input: ResMut<Touches>,
     mut aim: ResMut<Aim>,
     mut query: Query<(Entity), With<Aiming>>,
 ) {
-    if input.just_pressed(KeyCode::Space) || mouse_button_input.just_pressed(MouseButton::Left) {
+    if input.just_pressed(KeyCode::Space)
+        || mouse_button_input.just_pressed(MouseButton::Left)
+        || (touch_input.any_just_released() && touch_input.iter().count() == 0)
+    {
         for entity in query.iter_mut() {
             commands
                 .entity(entity)

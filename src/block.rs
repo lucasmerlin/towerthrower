@@ -353,8 +353,11 @@ pub fn rotate_aimed_blocks(
     mut query: Query<(Entity, &mut Transform, With<Block>, With<Aiming>)>,
     key_code: Res<Input<KeyCode>>,
     mouse_button: Res<Input<MouseButton>>,
+    touch: Res<Touches>,
 ) {
-    if mouse_button.just_pressed(MouseButton::Right) {
+    if mouse_button.just_pressed(MouseButton::Right)
+        || (touch.iter().count() == 2 && touch.any_just_pressed())
+    {
         for (entity, mut transform, ..) in query.iter_mut() {
             let vec3 = transform.translation;
             transform.rotate_around(vec3, Quat::from_rotation_z(FRAC_PI_2));
