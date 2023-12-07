@@ -263,6 +263,7 @@ impl Block {
                 block_type.build_collider(),
                 ActiveEvents::COLLISION_EVENTS,
                 //ColliderMassProperties::Mass(1.0),
+                ReadMassProperties::default(),
                 //Friction::coefficient(0.2),
                 Aiming,
                 Velocity::linear(Vec2::new(0.0, -0.0)),

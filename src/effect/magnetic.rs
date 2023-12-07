@@ -8,7 +8,7 @@ pub struct MagneticPlugin;
 
 impl Plugin for MagneticPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, magnetic_effect_system);
+        app.add_systems(FixedUpdate, magnetic_effect_system);
     }
 }
 
@@ -40,20 +40,53 @@ pub fn magnetic_effect_system(
 ) {
     for ((magnet_transform, mut magnet_self_impulse, effect)) in magnets_query.iter_mut() {
         for (block_transform, mut external_impulse) in blocks_query.iter_mut() {
-            let distance = magnet_transform
-                .translation
-                .distance(block_transform.translation);
-            if distance < effect.range {
-                let direction =
-                    (magnet_transform.translation - block_transform.translation).normalize();
+            let impulse = calculate_magnetic_impulse(magnet_transform, block_transform, effect);
 
-                // max force at 0 distance, 0 force at max distance
-                let force = (effect.range - distance) / effect.range * effect.force;
-
-                let force = direction * force;
-                external_impulse.impulse = force.xy();
-                magnet_self_impulse.impulse -= force.xy();
+            if let Some(impulse) = impulse {
+                external_impulse.impulse = impulse;
+                magnet_self_impulse.impulse -= impulse;
             }
         }
+    }
+
+    let mut combinations = magnets_query.iter_combinations_mut();
+    while let Some(
+        [(transform_a, mut impulse_a, effect_a), (transform_b, mut impulse_b, effect_b)],
+    ) = combinations.fetch_next()
+    {
+        let impulse = calculate_magnetic_impulse(transform_a, transform_b, effect_a);
+
+        if let Some(impulse) = impulse {
+            impulse_b.impulse = impulse;
+            impulse_a.impulse -= impulse;
+        }
+
+        let impulse = calculate_magnetic_impulse(transform_b, transform_a, effect_b);
+        if let Some(impulse) = impulse {
+            impulse_a.impulse = impulse;
+            impulse_b.impulse -= impulse;
+        }
+    }
+}
+
+pub fn calculate_magnetic_impulse(
+    magnet_transform: &Transform,
+    block_transform: &Transform,
+    effect: &MagneticEffect,
+) -> Option<Vec2> {
+    let distance = magnet_transform
+        .translation
+        .distance(block_transform.translation);
+    if distance < effect.range {
+        let direction =
+            (magnet_transform.translation.xy() - block_transform.translation.xy()).normalize();
+
+        // max force at 0 distance, 0 force at max distance
+        let force = (effect.range - distance) / effect.range * effect.force;
+
+        let force = direction * force;
+        Some(force)
+    } else {
+        None
     }
 }

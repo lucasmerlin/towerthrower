@@ -2,9 +2,9 @@ use crate::effect::glue::GlueEffect;
 use crate::effect::platform::PlatformEffect;
 use bevy::prelude::*;
 
-mod glue;
-mod magnetic;
-mod platform;
+pub mod glue;
+pub mod magnetic;
+pub mod platform;
 
 pub struct EffectPlugin;
 

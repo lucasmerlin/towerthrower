@@ -7,9 +7,10 @@ use bevy_rapier2d::prelude::*;
 use crate::block::{Aiming, Block, BlockType, Falling};
 use crate::camera_movement::CameraMovement;
 use crate::cursor_system::CursorCoords;
+use crate::effect::magnetic::{calculate_magnetic_impulse, MagneticEffect};
 use crate::launch_platform::LaunchPlatform;
 use crate::state::LevelState;
-use crate::GRAVITY;
+use crate::{GRAVITY, PHYSICS_DT};
 
 pub struct ThrowPlugin;
 
@@ -99,10 +100,14 @@ pub fn remove_simulation_system(
 pub fn simulate_throw_system(
     mut commands: Commands,
     aim: Res<Aim>,
-    aimed_block: Query<(Entity, &Collider, &Transform), (With<Block>, With<Aiming>)>,
+    aimed_block: Query<
+        (Entity, &Collider, &Transform, &ReadMassProperties),
+        (With<Block>, With<Aiming>),
+    >,
     has_falling_block: Query<Entity, With<Falling>>,
     rapier_context: Res<RapierContext>,
     old_target_indicators: Query<Entity, With<TargetIndicator>>,
+    magnets: Query<(Entity, &Transform, &MagneticEffect), (Without<Falling>, Without<Aiming>)>,
     mut assets: ResMut<AssetServer>,
 ) {
     // remove previous target indicators
@@ -114,9 +119,11 @@ pub fn simulate_throw_system(
         return;
     }
 
-    if let Ok((aimed, aimed_collider, aimed_transform)) = aimed_block.get_single() {
+    if let Ok((aimed, aimed_collider, aimed_transform, mass)) = aimed_block.get_single() {
+        dbg!(mass);
+
         let mut t = 0.0;
-        let dt = 0.005;
+        let dt = PHYSICS_DT;
 
         let shape = aimed_collider.clone();
         let mut transform = aimed_transform.clone();
@@ -130,16 +137,20 @@ pub fn simulate_throw_system(
         while t < 2.0 {
             let angle = Vec2::Y.angle_between((transform.rotation * Vec3::Y).xy());
 
-            let mut intersection = rapier_context.intersection_with_shape(
+            let mut intersection = rapier_context.cast_shape(
                 transform.translation.xy(),
                 angle,
+                velocity.linvel,
                 &shape,
+                dt,
+                true,
                 QueryFilter::default()
                     .exclude_collider(aimed)
                     .exclude_sensors(),
             );
 
-            if intersection.is_some() {
+            if let Some((entity, toi)) = intersection {
+                transform.translation += Vec3::from((velocity.linvel * toi.toi, 0.0));
                 hit = true;
                 break;
             }
@@ -147,6 +158,17 @@ pub fn simulate_throw_system(
             transform.translation += Vec3::from((velocity.linvel * dt, 0.0));
             transform.rotation = transform.rotation * Quat::from_rotation_z(velocity.angvel * dt);
             velocity.linvel += acceleration * dt;
+
+            let impulse =
+                magnets
+                    .iter()
+                    .fold(Vec2::ZERO, |acc, (entity, magnet_transform, effect)| {
+                        calculate_magnetic_impulse(magnet_transform, &transform, effect)
+                            .unwrap_or(Vec2::ZERO)
+                            + acc
+                    });
+
+            velocity.linvel += impulse / mass.mass;
 
             steps.push(transform.clone());
 

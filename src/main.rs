@@ -44,6 +44,8 @@ pub struct MainCamera;
 pub const PIXELS_PER_METER: f32 = 100.0;
 pub const GRAVITY: f32 = -9.81 * PIXELS_PER_METER;
 
+pub const PHYSICS_DT: f32 = 1.0 / 60.0;
+
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb_u8(0, 148, 255)))
@@ -53,8 +55,8 @@ fn main() {
                 primary_window: Some(Window {
                     title: "Tower Thrower".into(),
                     fit_canvas_to_parent: true,
-                    resolution: WindowResolution::new(1280.0, 720.0)
-                        .with_scale_factor_override(1.0),
+                    // resolution: WindowResolution::new(1280.0, 720.0)
+                    //     .with_scale_factor_override(1.0),
                     ..default()
                 }),
                 ..default()
@@ -123,10 +125,9 @@ pub fn setup_physics(
     mut config: ResMut<RapierConfiguration>,
     mut context: ResMut<RapierContext>,
 ) {
-    let framerate = 60.0;
     config.gravity = Vec2::Y * GRAVITY;
     config.timestep_mode = TimestepMode::Fixed {
-        dt: 1.0 / framerate,
+        dt: PHYSICS_DT,
         substeps: 1,
     };
 
