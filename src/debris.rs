@@ -1,5 +1,6 @@
 use crate::block::{Block, DestroyBlockOnContact, BLOCK_COLLISION_GROUP, BLOCK_SIZE};
 use crate::floor::Floor;
+use crate::level::LevelLifecycle;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use rand::random;
@@ -47,6 +48,7 @@ pub fn block_to_debris_system(
                         for pos in block.block_type.get_shape() {
                             commands.spawn((
                                 Debris::default(),
+                                LevelLifecycle,
                                 SpatialBundle::from(
                                     Transform::from_xyz(
                                         transform.translation.x + pos.x,

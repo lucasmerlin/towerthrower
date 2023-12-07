@@ -3,7 +3,7 @@ use bevy_rapier2d::geometry::Collider;
 use bevy_rapier2d::prelude::{Friction, RigidBody, Velocity};
 
 use crate::cursor_system::CursorCoords;
-use crate::level::Level;
+use crate::level::{Level, LevelLifecycle};
 use crate::state::LevelState;
 
 pub struct BasePlugin;
@@ -24,6 +24,7 @@ pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>, mut l
     commands
         .spawn((
             Base,
+            LevelLifecycle,
             SpatialBundle::from(
                 Transform::from_xyz(0.0, height / 2.0, 0.0)
                     .with_rotation(Quat::from_rotation_z(0.0)),

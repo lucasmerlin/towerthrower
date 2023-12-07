@@ -1,3 +1,5 @@
+use crate::level::LevelLifecycle;
+use crate::state::LevelState;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -5,8 +7,11 @@ pub struct LaunchPlatformPlugin;
 
 impl Plugin for LaunchPlatformPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (spawn_launch_platform_system))
-            .add_systems(Update, (launch_platform_control_system));
+        app.add_systems(OnEnter(LevelState::Playing), (spawn_launch_platform_system))
+            .add_systems(
+                Update,
+                (launch_platform_control_system.run_if(in_state(LevelState::Playing))),
+            );
     }
 }
 
@@ -19,6 +24,7 @@ pub fn spawn_launch_platform_system(mut commands: Commands, mut assets: ResMut<A
     commands
         .spawn((
             LaunchPlatform,
+            LevelLifecycle,
             SpatialBundle::from(Transform::from_translation(Vec3::new(0.0, 0.0, 0.0))),
             RigidBody::KinematicVelocityBased,
             Velocity::zero(),

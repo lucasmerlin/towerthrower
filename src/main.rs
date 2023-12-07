@@ -9,14 +9,16 @@ mod environment;
 mod floor;
 mod launch_platform;
 mod level;
+mod level_ui;
 mod state;
 mod target_height_indicator;
 mod throw;
+mod ui;
 
 use crate::base::{base_position, setup_base, BasePlugin};
 use crate::block::{
     block_stable_system, despawn_dropped_blocks, despawn_target_beam, falling_block_collision,
-    rotate_aimed_blocks, CaughtBlock, FallingBlockCollision, SpawnTimer,
+    rotate_aimed_blocks, BlockPlugin, CaughtBlock, FallingBlockCollision, SpawnTimer,
 };
 use crate::camera_movement::{camera_movement_system, CameraMovement};
 use crate::cursor_system::{my_cursor_system, CursorCoords};
@@ -26,11 +28,14 @@ use crate::environment::EnvironmentPlugin;
 use crate::floor::FloorPlugin;
 use crate::launch_platform::{LaunchPlatform, LaunchPlatformPlugin};
 use crate::level::LevelPlugin;
+use crate::level_ui::LevelUiPlugin;
 use crate::state::StatePlugin;
 use crate::target_height_indicator::TargetHeightIndicatorPlugin;
 use crate::throw::ThrowPlugin;
+use crate::ui::UiPlugin;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
+use bevy_egui::EguiPlugin;
 use bevy_framepace::{FramePaceStats, FramepacePlugin, FramepaceSettings, Limiter};
 use bevy_rapier2d::prelude::*;
 
@@ -45,20 +50,30 @@ fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb_u8(0, 148, 255)))
         .add_plugins((
+            // Bevy plugins
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER),
             RapierDebugRenderPlugin::default(),
-            LevelPlugin,
-            StatePlugin,
-            BasePlugin,
-            FloorPlugin,
-            DebrisPlugin,
-            EnvironmentPlugin,
-            EffectPlugin,
-            ThrowPlugin,
-            LaunchPlatformPlugin,
-            FramepacePlugin,
-            TargetHeightIndicatorPlugin,
+            EguiPlugin,
+            // Game plugins
+            (
+                BlockPlugin,
+                LevelPlugin,
+                StatePlugin,
+                BasePlugin,
+                FloorPlugin,
+                DebrisPlugin,
+                EnvironmentPlugin,
+                EffectPlugin,
+            ),
+            (
+                ThrowPlugin,
+                LaunchPlatformPlugin,
+                FramepacePlugin,
+                TargetHeightIndicatorPlugin,
+                LevelUiPlugin,
+                UiPlugin,
+            ),
         ))
         .add_systems(Startup, (setup_graphics, setup_physics))
         .add_systems(
@@ -66,13 +81,8 @@ fn main() {
             (
                 my_cursor_system,
                 //block_collision,
-                rotate_aimed_blocks,
                 camera_movement_system,
-                despawn_target_beam,
-                falling_block_collision,
-                block_stable_system,
-                despawn_dropped_blocks,
-                despawn_entities,
+                despawn_lost_entities,
             ),
         )
         // .add_systems(PostUpdate, )
@@ -91,7 +101,7 @@ pub fn setup_graphics(mut commands: Commands, mut assets: ResMut<AssetServer>) {
             projection: OrthographicProjection {
                 far: 1000.0,
                 near: -1000.0,
-                scaling_mode: ScalingMode::FixedVertical(1000.0),
+                scaling_mode: ScalingMode::FixedVertical(700.0),
                 ..OrthographicProjection::default()
             },
             ..default()
@@ -127,7 +137,7 @@ pub fn setup_physics(
     //     .max_velocity_friction_iterations = 30;
 }
 
-pub fn despawn_entities(mut commands: Commands, mut query: Query<(Entity, &Transform)>) {
+pub fn despawn_lost_entities(mut commands: Commands, mut query: Query<(Entity, &Transform)>) {
     for (entity, transform) in query.iter_mut() {
         if transform.translation.x < -2000.0
             || transform.translation.x > 2000.0

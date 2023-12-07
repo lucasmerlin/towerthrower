@@ -1,13 +1,16 @@
 use bevy::prelude::*;
 
-use crate::level::{Level, LevelGoal};
-use crate::state::{GameState, LevelState};
+use crate::level::{Level, LevelGoal, LevelLifecycle};
+use crate::state::LevelState;
 
 pub struct TargetHeightIndicatorPlugin;
 
 impl Plugin for TargetHeightIndicatorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (setup_target_height_indicator,));
+        app.add_systems(
+            OnEnter(LevelState::Playing),
+            (setup_target_height_indicator,),
+        );
     }
 }
 
@@ -26,6 +29,8 @@ pub fn setup_target_height_indicator(
 
     if let LevelGoal::ReachHeight(height) = level.goal {
         commands.spawn((
+            TargetHeightIndicator,
+            LevelLifecycle,
             SpriteBundle {
                 sprite: Sprite {
                     custom_size: Some(Vec2::new(10000.0, 1.0)),
@@ -35,7 +40,6 @@ pub fn setup_target_height_indicator(
                 transform: Transform::from_xyz(0.0, height, 0.0),
                 ..Default::default()
             },
-            TargetHeightIndicator,
         ));
     }
 }

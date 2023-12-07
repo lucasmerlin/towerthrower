@@ -4,6 +4,7 @@ use rand::{random, thread_rng, Rng};
 
 use crate::block::{DestroyBlockOnContact, BLOCK_COLLISION_GROUP};
 use crate::floor::FLOOR_COLLISION_GROUP;
+use crate::level::LevelLifecycle;
 
 pub struct CarPlugin;
 
@@ -74,6 +75,7 @@ pub fn spawn_car_system(
 
         commands.spawn((
             Car::default(),
+            LevelLifecycle,
             DestroyBlockOnContact,
             SpriteBundle {
                 sprite: Sprite {

@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::debris::Debris;
+use crate::level::LevelLifecycle;
 
 pub struct DebrisCleanerPlugin;
 
@@ -37,6 +38,7 @@ pub fn spawn_debris_cleaner(
     if count > DEBRIS_CLEANER_THRESHOLD && debris_cleaner_count == 0 {
         commands.spawn((
             DebrisCleaner,
+            LevelLifecycle,
             SpatialBundle::from(
                 Transform::from_xyz(1000.0, -50.0, 0.0).with_rotation(Quat::from_rotation_z(0.0)),
             ),

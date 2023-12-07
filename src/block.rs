@@ -1,13 +1,31 @@
 use std::f32::consts::FRAC_PI_2;
 
-use bevy::prelude::KeyCode::Sleep;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::base::Base;
 use crate::effect::add_random_effect;
 use crate::floor::Floor;
+use crate::level::LevelLifecycle;
+use crate::state::LevelState;
 use crate::throw::TargetIndicator;
+
+pub struct BlockPlugin;
+
+impl Plugin for BlockPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (
+                rotate_aimed_blocks,
+                falling_block_collision,
+                block_stable_system,
+                despawn_dropped_blocks,
+            )
+                .run_if(in_state(LevelState::Playing)),
+        )
+        .add_event::<CaughtBlock>();
+    }
+}
 
 #[derive(Resource, Debug)]
 pub struct SpawnTimer(pub Timer);
@@ -239,6 +257,7 @@ impl Block {
         let entity = commands
             .spawn((
                 block,
+                LevelLifecycle,
                 SpatialBundle::from(Transform::from_xyz(position.x, position.y, 0.0)),
                 RigidBody::KinematicVelocityBased,
                 block_type.build_collider(),

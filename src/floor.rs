@@ -1,4 +1,6 @@
 use crate::block::DestroyBlockOnContact;
+use crate::level::LevelLifecycle;
+use crate::state::LevelState;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -6,7 +8,7 @@ pub struct FloorPlugin;
 
 impl Plugin for FloorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_floor);
+        app.add_systems(OnEnter(LevelState::Playing), setup_floor);
     }
 }
 
@@ -32,6 +34,7 @@ pub fn setup_floor(mut commands: Commands) {
             ..Default::default()
         },
         Floor,
+        LevelLifecycle,
         DestroyBlockOnContact,
         RigidBody::Fixed,
         collider,

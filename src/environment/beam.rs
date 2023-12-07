@@ -1,3 +1,4 @@
+use crate::level::LevelLifecycle;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 
@@ -35,6 +36,7 @@ pub fn spawn_beam_system(mut commands: Commands, mut beam_events: EventReader<Be
                 Beam {
                     target: event.target,
                 },
+                LevelLifecycle,
                 SpriteBundle {
                     sprite: Sprite {
                         color: Color::rgba_u8(255, 255, 255, 200),
@@ -67,7 +69,6 @@ pub fn update_beam_system(
             .length();
 
             sprite.custom_size = Some(Vec2::new(beam_length, 10.0));
-            println!("beam_length: {}", beam_length);
         }
     }
 }

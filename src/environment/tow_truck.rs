@@ -3,6 +3,7 @@ use bevy_rapier2d::prelude::*;
 
 use crate::environment::beam::BeamEvent;
 use crate::environment::car::{Car, CarCrashedEvent};
+use crate::level::LevelLifecycle;
 
 pub struct TowTruckPlugin;
 
@@ -37,6 +38,7 @@ pub fn spawn_tow_truck_system(
                 target: event.entity,
                 phase: TowTruckPhase::MovingToTarget,
             },
+            LevelLifecycle,
             SpatialBundle::from(Transform::from_xyz(-1000.0, 0.0, 0.0)),
             RigidBody::KinematicVelocityBased,
             Collider::cuboid(size.x / 2.0, size.y / 2.0),

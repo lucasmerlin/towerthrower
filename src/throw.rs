@@ -8,27 +8,33 @@ use crate::block::{Aiming, Block, BlockType, Falling};
 use crate::camera_movement::CameraMovement;
 use crate::cursor_system::CursorCoords;
 use crate::launch_platform::LaunchPlatform;
+use crate::state::LevelState;
 use crate::GRAVITY;
 
 pub struct ThrowPlugin;
 
 impl Plugin for ThrowPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PreUpdate, (create_aiming_block,))
-            .add_systems(
-                Update,
-                (
-                    fill_throw_queue,
-                    update_aim_system,
-                    update_aim_from_mouse_position_system,
-                    mousewheel_aim_force_system,
-                    throw_system,
-                    update_aiming_block_position,
-                    simulate_throw_system,
-                ),
+        app.add_systems(
+            PreUpdate,
+            (create_aiming_block.run_if(in_state(LevelState::Playing)),),
+        )
+        .add_systems(OnExit(LevelState::Playing), remove_simulation_system)
+        .add_systems(
+            Update,
+            (
+                fill_throw_queue,
+                update_aim_system,
+                update_aim_from_mouse_position_system,
+                mousewheel_aim_force_system,
+                throw_system,
+                update_aiming_block_position,
+                simulate_throw_system,
             )
-            .init_resource::<Aim>()
-            .init_resource::<ThrowQueue>();
+                .run_if(in_state(LevelState::Playing)),
+        )
+        .init_resource::<Aim>()
+        .init_resource::<ThrowQueue>();
     }
 }
 
@@ -73,6 +79,19 @@ impl Default for ThrowQueue {
 
 #[derive(Component, Debug)]
 pub struct TargetIndicator;
+
+pub fn remove_simulation_system(
+    mut commands: Commands,
+    mut query: Query<(Entity), With<TargetIndicator>>,
+    mut aiming_block_query: Query<(Entity), With<Aiming>>,
+) {
+    for entity in query.iter_mut() {
+        commands.entity(entity).despawn_recursive();
+    }
+    for entity in aiming_block_query.iter_mut() {
+        commands.entity(entity).despawn_recursive();
+    }
+}
 
 pub fn simulate_throw_system(
     mut commands: Commands,
