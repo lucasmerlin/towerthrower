@@ -1,6 +1,6 @@
 use crate::block::{Block, DestroyBlockOnContact, BLOCK_COLLISION_GROUP, BLOCK_SIZE};
 use crate::floor::Floor;
-use crate::level::LevelLifecycle;
+use crate::level::{LevelLifecycle, UpdateLevelStats};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use rand::random;
@@ -33,6 +33,7 @@ pub fn block_to_debris_system(
     mut collision_events: EventReader<CollisionEvent>,
     mut floor_query: Query<&mut DestroyBlockOnContact>,
     mut block_query: Query<(Entity, &Block, &Transform, &Velocity)>,
+    mut update_level_stats_events: EventWriter<UpdateLevelStats>,
 ) {
     for event in collision_events.read() {
         match event {
@@ -73,6 +74,8 @@ pub fn block_to_debris_system(
                                 },
                             ));
                         }
+
+                        update_level_stats_events.send(UpdateLevelStats::BlockDestroyed);
                     }
                 })
             }

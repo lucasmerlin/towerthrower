@@ -70,6 +70,8 @@ pub fn egui_level_ui(
             ui.heading("Stats:");
             ui.label(format!("Tower Height: {:.2}", stats.current_height));
             ui.label(format!("Blocks Stacked: {}", stats.current_block_count));
+            ui.label(format!("Blocks Thrown: {}", stats.blocks_thrown));
+            ui.label(format!("Blocks Dropped: {}", stats.blocks_dropped));
 
             ui.heading("Winning Condition:");
             match current_level.goal {
@@ -79,6 +81,11 @@ pub fn egui_level_ui(
                 crate::level::LevelGoal::ReachBlockCount(count) => {
                     ui.label(format!("Reach Block Count: {}", count));
                 }
+            }
+
+            ui.heading("Loosing Condition:");
+            if let Some(max_blocks) = current_level.max_blocks {
+                ui.label(format!("Max Blocks: {}", max_blocks));
             }
 
             if ui.button("Next Level").clicked() {

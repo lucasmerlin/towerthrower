@@ -30,17 +30,33 @@ impl Default for MagneticEffect {
 /// Should apply a force to all blocks in range, pulling them towards the center of the block
 pub fn magnetic_effect_system(
     mut magnets_query: Query<
-        (&Transform, &mut ExternalImpulse, &MagneticEffect),
-        (Without<Falling>, Without<Aiming>, Without<TargetIndicator>),
+        (Entity, &Transform, &mut ExternalImpulse, &MagneticEffect),
+        (Without<Aiming>, Without<TargetIndicator>, With<Block>),
     >,
     mut blocks_query: Query<
-        (&Transform, &mut ExternalImpulse),
-        (Without<MagneticEffect>, With<Block>),
+        (Entity, &Transform, &mut ExternalImpulse),
+        (
+            With<Block>,
+            Without<MagneticEffect>,
+            Without<Aiming>,
+            Without<TargetIndicator>,
+        ),
     >,
 ) {
-    for ((magnet_transform, mut magnet_self_impulse, effect)) in magnets_query.iter_mut() {
-        for (block_transform, mut external_impulse) in blocks_query.iter_mut() {
+    for ((mag_entity, magnet_transform, mut magnet_self_impulse, effect)) in
+        magnets_query.iter_mut()
+    {
+        for (block_entity, block_transform, mut external_impulse) in blocks_query.iter_mut() {
             let impulse = calculate_magnetic_impulse(magnet_transform, block_transform, effect);
+
+            dbg!(
+                &mag_entity,
+                &block_entity,
+                &impulse,
+                &magnet_transform,
+                &block_transform,
+                &effect
+            );
 
             if let Some(impulse) = impulse {
                 external_impulse.impulse = impulse;
@@ -51,7 +67,7 @@ pub fn magnetic_effect_system(
 
     let mut combinations = magnets_query.iter_combinations_mut();
     while let Some(
-        [(transform_a, mut impulse_a, effect_a), (transform_b, mut impulse_b, effect_b)],
+        [(entity_a, transform_a, mut impulse_a, effect_a), (entity_b, transform_b, mut impulse_b, effect_b)],
     ) = combinations.fetch_next()
     {
         let impulse = calculate_magnetic_impulse(transform_a, transform_b, effect_a);

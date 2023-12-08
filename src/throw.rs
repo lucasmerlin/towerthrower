@@ -9,6 +9,7 @@ use crate::camera_movement::CameraMovement;
 use crate::cursor_system::CursorCoords;
 use crate::effect::magnetic::{calculate_magnetic_impulse, MagneticEffect};
 use crate::launch_platform::LaunchPlatform;
+use crate::level::{Level, LevelStats, UpdateLevelStats};
 use crate::state::LevelState;
 use crate::{GRAVITY, PHYSICS_DT};
 
@@ -45,6 +46,7 @@ impl Plugin for ThrowPlugin {
 #[derive(Resource, Debug)]
 pub struct Aim {
     pub direction: Vec2,
+    pub force_factor: f32,
     pub force: f32,
     pub rotation: f32,
 }
@@ -52,6 +54,7 @@ impl Default for Aim {
     fn default() -> Self {
         Self {
             direction: Vec2::from_angle(PI / 1.5),
+            force_factor: 0.0,
             force: 500.0,
             rotation: 0.1,
         }
@@ -107,7 +110,20 @@ pub fn simulate_throw_system(
     has_falling_block: Query<Entity, With<Falling>>,
     rapier_context: Res<RapierContext>,
     old_target_indicators: Query<Entity, With<TargetIndicator>>,
-    magnets: Query<(Entity, &Transform, &MagneticEffect), (Without<Falling>, Without<Aiming>)>,
+    magnets: Query<
+        (Entity, &Transform, &MagneticEffect),
+        (Without<Falling>, Without<Aiming>, With<Block>),
+    >,
+    other_blocks: Query<
+        (Entity, &Transform),
+        (
+            With<Block>,
+            Without<MagneticEffect>,
+            Without<Aiming>,
+            Without<TargetIndicator>,
+        ),
+    >,
+    am_i_magnet: Query<&MagneticEffect>,
     mut assets: ResMut<AssetServer>,
 ) {
     // remove previous target indicators
@@ -120,8 +136,6 @@ pub fn simulate_throw_system(
     }
 
     if let Ok((aimed, aimed_collider, aimed_transform, mass)) = aimed_block.get_single() {
-        dbg!(mass);
-
         let mut t = 0.0;
         let dt = PHYSICS_DT;
 
@@ -155,21 +169,49 @@ pub fn simulate_throw_system(
                 break;
             }
 
-            transform.translation += Vec3::from((velocity.linvel * dt, 0.0));
-            transform.rotation = transform.rotation * Quat::from_rotation_z(velocity.angvel * dt);
             velocity.linvel += acceleration * dt;
+            transform.rotation = transform.rotation * Quat::from_rotation_z(velocity.angvel * dt);
+            transform.translation += Vec3::from((velocity.linvel * dt, 0.0));
 
-            let impulse =
+            let my_magnetic_effect = am_i_magnet.get(aimed).ok();
+
+            let mut impulse =
                 magnets
                     .iter()
                     .fold(Vec2::ZERO, |acc, (entity, magnet_transform, effect)| {
-                        calculate_magnetic_impulse(magnet_transform, &transform, effect)
-                            .unwrap_or(Vec2::ZERO)
-                            + acc
+                        let mut impulse =
+                            calculate_magnetic_impulse(magnet_transform, &transform, effect)
+                                .unwrap_or(Vec2::ZERO);
+
+                        if let Some(my_magnetic_effect) = my_magnetic_effect {
+                            impulse += calculate_magnetic_impulse(
+                                &transform,
+                                magnet_transform,
+                                my_magnetic_effect,
+                            )
+                            .unwrap_or(Vec2::ZERO);
+                        }
+
+                        impulse + acc
                     });
 
-            velocity.linvel += impulse / mass.mass;
+            if let Some(my_magnetic_effect) = my_magnetic_effect {
+                impulse +=
+                    other_blocks
+                        .iter()
+                        .fold(Vec2::ZERO, |acc, (entity, block_transform)| {
+                            let mut impulse = calculate_magnetic_impulse(
+                                &transform,
+                                block_transform,
+                                my_magnetic_effect,
+                            )
+                            .unwrap_or(Vec2::ZERO);
+                            acc - impulse
+                        });
+            }
 
+            velocity.linvel += impulse / mass.mass;
+            /// mass.mass;
             steps.push(transform.clone());
 
             t += dt;
@@ -249,7 +291,22 @@ pub fn update_aiming_block_position(
     }
 }
 
-pub fn fill_throw_queue(mut throw_queue: ResMut<ThrowQueue>) {
+pub fn setup_throw_queue(mut throw_queue: ResMut<ThrowQueue>, level: Res<Level>) {
+    if let Some(max_blocks) = level.max_blocks {
+        for _ in 0..max_blocks {
+            throw_queue.queue.push(BlockType::random());
+        }
+        throw_queue.target_length = 0;
+    } else {
+        throw_queue.target_length = 3;
+    }
+}
+
+pub fn fill_throw_queue(
+    mut throw_queue: ResMut<ThrowQueue>,
+    level: Res<Level>,
+    level_stats: Res<LevelStats>,
+) {
     while throw_queue.queue.len() < throw_queue.target_length {
         throw_queue.queue.push(BlockType::random());
     }
@@ -267,9 +324,9 @@ pub fn update_aim_system(
     }
 
     if key_code.pressed(KeyCode::Up) {
-        aim.force += 2.0;
+        aim.force_factor += 2.0;
     } else if key_code.pressed(KeyCode::Down) {
-        aim.force -= 2.0;
+        aim.force_factor -= 2.0;
     }
 
     if key_code.pressed(KeyCode::Q) {
@@ -295,29 +352,42 @@ pub fn update_aim_from_mouse_position_system(
 
         let mut shot = None;
 
-        let mut force = aim.force;
+        let mut min_force = 0.0;
+
+        let force_factor = aim.force_factor;
+
+        let direct_aim = force_factor > 0.0;
 
         for _ in 0..1000 {
-            let switch_aim = input.pressed(KeyCode::ControlLeft);
-
-            let angle =
-                Vec2::Y.angle_between((transform.translation.xy() - mouse_position).normalize());
-
-            // True when the mouse is in a 45 degree angle below the platform
-            let use_direct_aim = angle < PI / 4.0 && angle > -PI / 4.0;
+            // let switch_aim = input.pressed(KeyCode::ControlLeft);
+            //
+            // let angle =
+            //     Vec2::Y.angle_between((transform.translation.xy() - mouse_position).normalize());
+            //
+            // // True when the mouse is in a 45 degree angle below the platform
+            // let use_direct_aim = angle < PI / 4.0 && angle > -PI / 4.0;
 
             shot = calculate_shot_for_target(
                 transform.translation.xy(),
                 mouse_position,
-                force,
-                switch_aim != use_direct_aim,
+                min_force,
+                direct_aim,
             );
             if shot.is_none() {
-                force += 10.0;
+                min_force += 1.0;
             } else {
                 break;
             }
         }
+
+        let force = min_force + min_force * force_factor.abs();
+
+        shot = calculate_shot_for_target(
+            transform.translation.xy(),
+            mouse_position,
+            force,
+            direct_aim,
+        );
 
         if let Some(shot) = shot {
             aim.force = force;
@@ -330,13 +400,14 @@ pub fn mousewheel_aim_force_system(
     mut aim: ResMut<Aim>,
     mut mouse_wheel_input: EventReader<MouseWheel>,
 ) {
+    let factor = 0.0005;
     for event in mouse_wheel_input.read() {
         match event.unit {
             MouseScrollUnit::Pixel => {
-                aim.force += event.y * 1.0;
+                aim.force_factor += event.y * factor;
             }
             MouseScrollUnit::Line => {
-                aim.force += event.y * 10.0;
+                aim.force_factor += event.y * 10.0 * factor;
             }
         }
     }
@@ -379,6 +450,7 @@ pub fn throw_system(
     mut touch_input: ResMut<Touches>,
     mut aim: ResMut<Aim>,
     mut query: Query<(Entity), With<Aiming>>,
+    mut update_level_stats_event: EventWriter<UpdateLevelStats>,
 ) {
     if input.just_pressed(KeyCode::Space)
         || mouse_button_input.just_pressed(MouseButton::Left)
@@ -389,7 +461,14 @@ pub fn throw_system(
                 .entity(entity)
                 .remove::<Aiming>()
                 .remove::<Sensor>()
-                .insert((Falling, RigidBody::Dynamic, aim.velocity()));
+                .insert((
+                    Falling,
+                    RigidBody::Dynamic,
+                    Sleeping::disabled(),
+                    aim.velocity(),
+                ));
+
+            update_level_stats_event.send(UpdateLevelStats::BlockThrown);
         }
     }
 }

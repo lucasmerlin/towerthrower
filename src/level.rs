@@ -14,14 +14,19 @@ impl Plugin for LevelPlugin {
             Update,
             (
                 load_level_event,
-                (check_current_block_stats, check_win_condition)
+                (
+                    check_current_block_stats,
+                    check_win_loose_condition,
+                    update_level_stats_events,
+                )
                     .run_if(in_state(LevelState::Playing)),
             ),
         )
         .add_systems(OnEnter(LevelState::Playing), reset_level_stats)
         .init_resource::<LevelStats>()
         .insert_resource(LEVELS[0].clone())
-        .add_event::<NextLevel>();
+        .add_event::<NextLevel>()
+        .add_event::<UpdateLevelStats>();
     }
 }
 
@@ -30,9 +35,15 @@ pub struct LevelStats {
     pub current_height: f32,
     pub blocks_thrown: usize,
     pub current_block_count: usize,
-    pub blocks_missed: usize,
+    pub blocks_dropped: usize,
 
     pub deaths: usize,
+}
+
+#[derive(Event, Debug, Clone)]
+pub enum UpdateLevelStats {
+    BlockThrown,
+    BlockDestroyed,
 }
 
 #[derive(Resource, Debug, Clone)]
@@ -68,22 +79,22 @@ pub static LEVELS: [Level; 4] = [
         level: 1,
         goal: LevelGoal::ReachBlockCount(10),
         time_limit: Some(Duration::from_secs(60)),
-        max_blocks: None,
+        max_blocks: Some(13),
         base_width: 80.0,
     },
     Level {
         level: 2,
         goal: LevelGoal::ReachHeight(200.0),
         time_limit: Some(Duration::from_secs(60)),
-        max_blocks: None,
+        max_blocks: Some(30),
         base_width: 120.0,
     },
     Level {
         level: 3,
-        goal: LevelGoal::ReachBlockCount(10),
+        goal: LevelGoal::ReachBlockCount(20),
         time_limit: Some(Duration::from_secs(60)),
-        max_blocks: None,
-        base_width: 160.0,
+        max_blocks: Some(25),
+        base_width: 100.0,
     },
 ];
 
@@ -130,7 +141,7 @@ pub fn check_current_block_stats(
     level_stats.current_block_count = block_count;
 }
 
-pub fn check_win_condition(
+pub fn check_win_loose_condition(
     mut commands: Commands,
     level_stats: Res<LevelStats>,
     level: Res<Level>,
@@ -152,4 +163,21 @@ pub fn check_win_condition(
 
 fn reset_level_stats(mut level_stats: ResMut<LevelStats>) {
     *level_stats = LevelStats::default();
+}
+
+fn update_level_stats_events(
+    mut commands: Commands,
+    mut level_stats: ResMut<LevelStats>,
+    mut evr: EventReader<UpdateLevelStats>,
+) {
+    for event in evr.read() {
+        match event {
+            UpdateLevelStats::BlockThrown => {
+                level_stats.blocks_thrown += 1;
+            }
+            UpdateLevelStats::BlockDestroyed => {
+                level_stats.blocks_dropped += 1;
+            }
+        }
+    }
 }
