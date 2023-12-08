@@ -49,15 +49,6 @@ pub fn magnetic_effect_system(
         for (block_entity, block_transform, mut external_impulse) in blocks_query.iter_mut() {
             let impulse = calculate_magnetic_impulse(magnet_transform, block_transform, effect);
 
-            dbg!(
-                &mag_entity,
-                &block_entity,
-                &impulse,
-                &magnet_transform,
-                &block_transform,
-                &effect
-            );
-
             if let Some(impulse) = impulse {
                 external_impulse.impulse = impulse;
                 magnet_self_impulse.impulse -= impulse;

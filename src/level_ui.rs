@@ -1,3 +1,4 @@
+use crate::environment::fees::{FeesPlugin, LevelFees};
 use bevy::prelude::*;
 use bevy_egui::egui::{Color32, RichText};
 use bevy_egui::{egui, EguiContexts};
@@ -58,6 +59,7 @@ pub fn egui_level_ui(
     stats: Res<LevelStats>,
     current_level: Res<Level>,
     level_state: Res<State<LevelState>>,
+    fees: Res<LevelFees>,
 ) {
     egui::Window::new("Level UI")
         .title_bar(false)
@@ -72,6 +74,10 @@ pub fn egui_level_ui(
             ui.label(format!("Blocks Stacked: {}", stats.current_block_count));
             ui.label(format!("Blocks Thrown: {}", stats.blocks_thrown));
             ui.label(format!("Blocks Dropped: {}", stats.blocks_dropped));
+
+            ui.heading("Damage:");
+            ui.label(format!("Cleanup Fee: {:.2}$", fees.cleanup_fee));
+            ui.label(format!("Property Damage: {:.2}$", fees.property_damage));
 
             ui.heading("Winning Condition:");
             match current_level.goal {

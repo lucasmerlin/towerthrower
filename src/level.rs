@@ -37,13 +37,14 @@ pub struct LevelStats {
     pub current_block_count: usize,
     pub blocks_dropped: usize,
 
-    pub deaths: usize,
+    pub cars_hit: usize,
 }
 
 #[derive(Event, Debug, Clone)]
 pub enum UpdateLevelStats {
     BlockThrown,
     BlockDestroyed,
+    CarHit,
 }
 
 #[derive(Resource, Debug, Clone)]
@@ -67,30 +68,37 @@ pub struct NextLevel(pub Option<usize>);
 #[derive(Component, Debug, Clone)]
 pub struct LevelLifecycle;
 
-pub static LEVELS: [Level; 4] = [
+pub static LEVELS: [Level; 5] = [
     Level {
         level: 0,
+        goal: LevelGoal::ReachHeight(200.0),
+        time_limit: Some(Duration::from_secs(60)),
+        max_blocks: None,
+        base_width: 10000.0,
+    },
+    Level {
+        level: 1,
         goal: LevelGoal::ReachHeight(200.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: None,
         base_width: 160.0,
     },
     Level {
-        level: 1,
+        level: 2,
         goal: LevelGoal::ReachBlockCount(10),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(13),
         base_width: 80.0,
     },
     Level {
-        level: 2,
+        level: 3,
         goal: LevelGoal::ReachHeight(200.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(30),
         base_width: 120.0,
     },
     Level {
-        level: 3,
+        level: 4,
         goal: LevelGoal::ReachBlockCount(20),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(25),
@@ -177,6 +185,9 @@ fn update_level_stats_events(
             }
             UpdateLevelStats::BlockDestroyed => {
                 level_stats.blocks_dropped += 1;
+            }
+            UpdateLevelStats::CarHit => {
+                level_stats.cars_hit += 1;
             }
         }
     }

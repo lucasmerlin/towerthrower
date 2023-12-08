@@ -169,10 +169,6 @@ pub fn simulate_throw_system(
                 break;
             }
 
-            velocity.linvel += acceleration * dt;
-            transform.rotation = transform.rotation * Quat::from_rotation_z(velocity.angvel * dt);
-            transform.translation += Vec3::from((velocity.linvel * dt, 0.0));
-
             let my_magnetic_effect = am_i_magnet.get(aimed).ok();
 
             let mut impulse =
@@ -211,7 +207,11 @@ pub fn simulate_throw_system(
             }
 
             velocity.linvel += impulse / mass.mass;
-            /// mass.mass;
+
+            velocity.linvel += acceleration * dt;
+            transform.rotation = transform.rotation * Quat::from_rotation_z(velocity.angvel * dt);
+            transform.translation += Vec3::from((velocity.linvel * dt, 0.0));
+
             steps.push(transform.clone());
 
             t += dt;

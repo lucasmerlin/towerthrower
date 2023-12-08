@@ -4,7 +4,7 @@ use rand::{random, thread_rng, Rng};
 
 use crate::block::{DestroyBlockOnContact, BLOCK_COLLISION_GROUP};
 use crate::floor::FLOOR_COLLISION_GROUP;
-use crate::level::LevelLifecycle;
+use crate::level::{LevelLifecycle, UpdateLevelStats};
 
 pub struct CarPlugin;
 
@@ -101,6 +101,7 @@ pub fn car_collision_system(
     mut collision_events: EventReader<CollisionEvent>,
     mut car_query: Query<(Entity, &mut Car)>,
     mut car_crashed_events: EventWriter<CarCrashedEvent>,
+    mut update_level_stats_events: EventWriter<UpdateLevelStats>,
 ) {
     for event in collision_events.read() {
         match event {
@@ -114,6 +115,7 @@ pub fn car_collision_system(
                     };
                     commands.entity(entity).insert((RigidBody::Dynamic,));
                     car_crashed_events.send(CarCrashedEvent { entity });
+                    update_level_stats_events.send(UpdateLevelStats::CarHit);
                 }
             }),
             CollisionEvent::Stopped(_, _, _) => {}

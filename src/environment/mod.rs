@@ -3,6 +3,7 @@ use bevy::prelude::*;
 mod beam;
 mod car;
 mod debris_cleaner;
+pub mod fees;
 mod tow_truck;
 
 pub struct EnvironmentPlugin;
@@ -14,6 +15,7 @@ impl Plugin for EnvironmentPlugin {
             car::CarPlugin,
             tow_truck::TowTruckPlugin,
             beam::BeamPlugin,
+            fees::FeesPlugin,
         ));
     }
 }
