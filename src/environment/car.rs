@@ -5,6 +5,7 @@ use rand::{random, thread_rng, Rng};
 use crate::block::{DestroyBlockOnContact, BLOCK_COLLISION_GROUP};
 use crate::floor::FLOOR_COLLISION_GROUP;
 use crate::level::{LevelLifecycle, UpdateLevelStats};
+use crate::{CAR_MAX_HEIGHT, CAR_MIN_HEIGHT};
 
 pub struct CarPlugin;
 
@@ -69,7 +70,10 @@ pub fn spawn_car_system(
 
         let direction = if random() { 1.0 } else { -1.0 };
 
-        let car_position = Vec2::new(direction * 1000.0, random::<f32>() * 40.0 + -50.0);
+        let car_position = Vec2::new(
+            direction * 1000.0,
+            thread_rng().gen_range(CAR_MIN_HEIGHT..CAR_MAX_HEIGHT),
+        );
 
         let car_velocity = Vec2::new(direction * -thread_rng().gen_range(70.0..100.0), 0.0);
 

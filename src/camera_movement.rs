@@ -25,25 +25,25 @@ pub fn camera_movement_system(
         Without<Falling>,
     )>,
 ) {
-    let mut highest = 0.0;
+    let mut highest = 100.0;
     for (transform, block, ..) in query.iter_mut() {
         if transform.translation.y > highest {
             highest = transform.translation.y;
         }
     }
 
-    highest += 00.0;
+    let target_height = highest - 100.0;
 
     let increase = 1.0;
 
-    if highest > camera_movement.height {
+    if target_height > camera_movement.height {
         camera_movement.height += increase;
-    } else if highest < camera_movement.height - increase {
+    } else if target_height < camera_movement.height - increase {
         camera_movement.height -= increase;
     }
 
     for mut transform in camera_query.iter_mut() {
-        transform.translation.y = camera_movement.height * 0.5 + 25.0;
+        transform.translation.y = camera_movement.height;
         // camera should slowly zoom out as we get higher
         //transform.scale = Vec3::new(1.0, 1.0, 1.0) * (1.0 + camera_movement.height / 1000.0);
     }

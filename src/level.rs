@@ -55,6 +55,19 @@ pub struct LevelBase {
     pub rotation: f32,
 }
 
+#[derive(Debug, Clone)]
+pub enum LaunchPlatformKind {
+    Static,
+    Vertical,
+    Free,
+}
+
+#[derive(Debug, Clone)]
+pub struct LaunchPlatform {
+    pub translation: Vec2,
+    pub kind: LaunchPlatformKind,
+}
+
 const fn default_level_base() -> LevelBase {
     LevelBase {
         width: 100.0,
@@ -72,6 +85,7 @@ pub struct Level {
     pub bases: &'static [LevelBase],
     pub enabled_effects: &'static [(EffectType, f32)],
     pub effect_likelihood: f32,
+    pub intro_text: &'static str,
 }
 
 pub const DEFAULT_EFFECTS: [(EffectType, f32); 2] =
@@ -88,6 +102,7 @@ pub const DEFAULT_LEVEL: Level = Level {
     }],
     enabled_effects: &DEFAULT_EFFECTS,
     effect_likelihood: 0.05,
+    intro_text: "Welcome to the game!",
 };
 
 #[derive(Debug, Clone)]
@@ -105,6 +120,7 @@ pub struct LevelLifecycle;
 pub static LEVELS: [Level; 6] = [
     Level {
         level: 0,
+        intro_text: "Test Level",
         goal: LevelGoal::ReachHeight(200.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: None,
@@ -116,6 +132,9 @@ pub static LEVELS: [Level; 6] = [
     },
     Level {
         level: 1,
+        intro_text: "Welcome to your first day at Big Bad Buildings, Inc. Your job is to operate the Tower Thrower 3000, a state-of-the-art machine that constructs buildings by throwing blocks.\
+        For your first building, reach a target height of 200m.\
+        ",
         goal: LevelGoal::ReachHeight(200.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: None,

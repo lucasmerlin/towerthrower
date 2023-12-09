@@ -15,6 +15,7 @@ use crate::environment::EnvironmentPlugin;
 use crate::floor::FloorPlugin;
 use crate::launch_platform::LaunchPlatformPlugin;
 use crate::level::LevelPlugin;
+use crate::level_intro_dialog::LevelIntroDialogPlugin;
 use crate::level_ui::LevelUiPlugin;
 use crate::state::StatePlugin;
 use crate::target_height_indicator::TargetHeightIndicatorPlugin;
@@ -31,6 +32,7 @@ mod environment;
 mod floor;
 mod launch_platform;
 mod level;
+mod level_intro_dialog;
 mod level_ui;
 mod state;
 mod target_height_indicator;
@@ -47,7 +49,11 @@ pub const GRAVITY: f32 = -9.81 * PIXELS_PER_METER;
 pub const PHYSICS_DT: f32 = 1.0 / 60.0;
 
 pub const VERTICAL_VIEWPORT_SIZE: f32 = 400.0;
-pub const FLOOR_HEIGHT: f32 = -100.0;
+pub const FLOOR_HEIGHT: f32 = -VERTICAL_VIEWPORT_SIZE / 2.0 + 10.0;
+
+pub const CAR_MIN_HEIGHT: f32 = FLOOR_HEIGHT + 20.0;
+
+pub const CAR_MAX_HEIGHT: f32 = FLOOR_HEIGHT / 2.0;
 
 fn main() {
     App::new()
@@ -85,6 +91,7 @@ fn main() {
                 TargetHeightIndicatorPlugin,
                 LevelUiPlugin,
                 UiPlugin,
+                LevelIntroDialogPlugin,
             ),
         ))
         .add_systems(Startup, (setup_graphics, setup_physics))
