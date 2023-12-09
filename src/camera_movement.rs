@@ -43,8 +43,8 @@ pub fn camera_movement_system(
     }
 
     for mut transform in camera_query.iter_mut() {
-        transform.translation.y = camera_movement.height * 0.5;
+        transform.translation.y = camera_movement.height * 0.5 + 25.0;
         // camera should slowly zoom out as we get higher
-        transform.scale = Vec3::new(1.0, 1.0, 1.0) * (1.0 + camera_movement.height / 1000.0);
+        //transform.scale = Vec3::new(1.0, 1.0, 1.0) * (1.0 + camera_movement.height / 1000.0);
     }
 }

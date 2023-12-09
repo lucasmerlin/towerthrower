@@ -1,6 +1,7 @@
 use crate::block::DestroyBlockOnContact;
 use crate::level::LevelLifecycle;
 use crate::state::LevelState;
+use crate::FLOOR_HEIGHT;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -30,7 +31,7 @@ pub fn setup_floor(mut commands: Commands) {
                 color: Color::rgb(0.0, 0.0, 0.0),
                 ..Default::default()
             },
-            transform: Transform::from_xyz(0.0, -height / 2.0 + -100.0, 0.0),
+            transform: Transform::from_xyz(0.0, -height / 2.0 + FLOOR_HEIGHT, 0.0),
             ..Default::default()
         },
         Floor,

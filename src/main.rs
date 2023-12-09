@@ -46,9 +46,12 @@ pub const GRAVITY: f32 = -9.81 * PIXELS_PER_METER;
 
 pub const PHYSICS_DT: f32 = 1.0 / 60.0;
 
+pub const VERTICAL_VIEWPORT_SIZE: f32 = 400.0;
+pub const FLOOR_HEIGHT: f32 = -100.0;
+
 fn main() {
     App::new()
-        .insert_resource(ClearColor(Color::rgb_u8(0, 148, 255)))
+        .insert_resource(ClearColor(Color::rgb_u8(250, 225, 124)))
         .add_plugins((
             // Bevy plugins
             DefaultPlugins.set(WindowPlugin {
@@ -101,6 +104,7 @@ fn main() {
         .insert_resource(AssetMetaCheck::Never)
         .add_event::<CaughtBlock>()
         .add_event::<FallingBlockCollision>()
+        //.insert_resource(Time::<Fixed>::from_seconds(0.25))
         .run();
 }
 
@@ -111,7 +115,7 @@ pub fn setup_graphics(mut commands: Commands, mut assets: ResMut<AssetServer>) {
             projection: OrthographicProjection {
                 far: 1000.0,
                 near: -1000.0,
-                scaling_mode: ScalingMode::FixedVertical(700.0),
+                scaling_mode: ScalingMode::FixedVertical(VERTICAL_VIEWPORT_SIZE),
                 ..OrthographicProjection::default()
             },
             ..default()

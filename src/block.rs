@@ -1,7 +1,9 @@
 use std::f32::consts::FRAC_PI_2;
 
 use bevy::prelude::*;
+use bevy::sprite::Anchor;
 use bevy_rapier2d::prelude::*;
+use rand::Rng;
 
 use crate::effect::add_random_effect;
 use crate::floor::Floor;
@@ -50,17 +52,20 @@ pub enum BlockType {
 
 pub const BLOCK_SIZE: f32 = 20.0;
 
+pub const BLOCKS: [BlockType; 7] = [
+    BlockType::I,
+    BlockType::O,
+    BlockType::T,
+    BlockType::S,
+    BlockType::Z,
+    BlockType::J,
+    BlockType::L,
+];
+
 impl BlockType {
     pub fn random() -> Self {
-        match rand::random::<u8>() % 7 {
-            0 => BlockType::I,
-            1 => BlockType::O,
-            2 => BlockType::T,
-            3 => BlockType::S,
-            4 => BlockType::Z,
-            5 => BlockType::J,
-            _ => BlockType::L,
-        }
+        let mut rng = rand::thread_rng();
+        BLOCKS[rng.gen_range(0..BLOCKS.len())]
     }
 
     pub fn get_shape(&self) -> Vec<Vec2> {
@@ -125,65 +130,66 @@ impl BlockType {
     pub fn build_collider(&self) -> Collider {
         let size = BLOCK_SIZE;
         let half_size = size / 2.0;
+
         match self {
             BlockType::I => Collider::cuboid(half_size * 4.0, half_size),
             BlockType::O => Collider::cuboid(half_size * 2.0, half_size * 2.0),
             BlockType::T => Collider::compound(vec![
                 (
-                    Vec2::new(0.0, 0.0),
+                    Vec2::new(0.0, -half_size),
                     0.0,
                     Collider::cuboid(half_size * 3.0, half_size),
                 ),
                 (
-                    Vec2::new(0.0, size),
+                    Vec2::new(0.0, half_size),
                     0.0,
                     Collider::cuboid(half_size, half_size),
                 ),
             ]),
             BlockType::S => Collider::compound(vec![
                 (
-                    Vec2::new(0.0, 0.0),
+                    Vec2::new(half_size, half_size),
                     0.0,
                     Collider::cuboid(half_size * 2.0, half_size),
                 ),
                 (
-                    Vec2::new(size, size),
+                    Vec2::new(-half_size, -half_size),
                     0.0,
                     Collider::cuboid(half_size * 2.0, half_size),
                 ),
             ]),
             BlockType::Z => Collider::compound(vec![
                 (
-                    Vec2::new(0.0, 0.0),
+                    Vec2::new(-half_size, half_size),
                     0.0,
                     Collider::cuboid(half_size * 2.0, half_size),
                 ),
                 (
-                    Vec2::new(-size, size),
+                    Vec2::new(half_size, -half_size),
                     0.0,
                     Collider::cuboid(half_size * 2.0, half_size),
                 ),
             ]),
             BlockType::J => Collider::compound(vec![
                 (
-                    Vec2::new(0.0, 0.0),
+                    Vec2::new(0.0, -half_size),
                     0.0,
                     Collider::cuboid(half_size * 3.0, half_size),
                 ),
                 (
-                    Vec2::new(0.0, size),
+                    Vec2::new(-1.0 * size, half_size),
                     0.0,
                     Collider::cuboid(half_size, half_size),
                 ),
             ]),
             BlockType::L => Collider::compound(vec![
                 (
-                    Vec2::new(0.0, 0.0),
+                    Vec2::new(0.0, -half_size),
                     0.0,
                     Collider::cuboid(half_size * 3.0, half_size),
                 ),
                 (
-                    Vec2::new(size, size),
+                    Vec2::new(1.0 * size, half_size),
                     0.0,
                     Collider::cuboid(half_size, half_size),
                 ),
@@ -203,8 +209,24 @@ impl BlockType {
         }
     }
 
+    pub fn block_height(&self) -> f32 {
+        match self {
+            BlockType::I => 1.0,
+            BlockType::O => 2.0,
+            BlockType::T => 2.0,
+            BlockType::S => 2.0,
+            BlockType::Z => 2.0,
+            BlockType::J => 2.0,
+            BlockType::L => 2.0,
+        }
+    }
+
     pub fn width(&self) -> f32 {
         self.block_width() * BLOCK_SIZE
+    }
+
+    pub fn height(&self) -> f32 {
+        self.block_height() * BLOCK_SIZE
     }
 }
 
@@ -254,11 +276,20 @@ impl Block {
     ) -> Entity {
         let block = Block::new(block_type);
         let width = block_type.width();
+        let height = block_type.height();
         let entity = commands
             .spawn((
                 block,
                 LevelLifecycle,
-                SpatialBundle::from(Transform::from_xyz(position.x, position.y, 0.0)),
+                SpriteBundle {
+                    transform: Transform::from_xyz(position.x, position.y, 0.0),
+                    texture: assets.load("blocks/J/1.png"),
+                    sprite: Sprite {
+                        custom_size: Some(Vec2::new(width, height)),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
                 RigidBody::KinematicVelocityBased,
                 block_type.build_collider(),
                 ActiveEvents::COLLISION_EVENTS,
