@@ -19,29 +19,34 @@ pub struct Base;
 
 pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>, mut level: Res<Level>) {
     let height = 20.0;
-    let width = level.base_width;
+    let width = level.bases[0].width;
 
-    commands
-        .spawn((
-            Base,
-            LevelLifecycle,
-            SpatialBundle::from(
-                Transform::from_xyz(0.0, height / 2.0, 0.0)
-                    .with_rotation(Quat::from_rotation_z(0.0)),
-            ),
-            RigidBody::KinematicVelocityBased,
-            Collider::cuboid(width / 2.0, height / 2.0),
-            Friction::coefficient(0.5),
-            Velocity::linear(Vec2::new(0.0, 0.0)),
-        ))
-        .with_children(|parent| {
-            parent.spawn(SpriteBundle {
-                // transform: Transform::from_xyz(0.0, 0.0, 0.0),
-                texture: assets.load("fortress.png"),
-                transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(0.1)),
-                ..Default::default()
+    for base in level.bases {
+        commands
+            .spawn((
+                Base,
+                LevelLifecycle,
+                SpatialBundle::from(
+                    Transform::from_translation(Vec3::from((
+                        base.translation + Vec2::new(0.0, height / 2.0),
+                        0.0,
+                    )))
+                    .with_rotation(Quat::from_rotation_z(base.rotation)),
+                ),
+                RigidBody::KinematicVelocityBased,
+                Collider::cuboid(width / 2.0, height / 2.0),
+                Friction::coefficient(0.5),
+                Velocity::linear(Vec2::new(0.0, 0.0)),
+            ))
+            .with_children(|parent| {
+                parent.spawn(SpriteBundle {
+                    // transform: Transform::from_xyz(0.0, 0.0, 0.0),
+                    texture: assets.load("fortress.png"),
+                    transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(0.1)),
+                    ..Default::default()
+                });
             });
-        });
+    }
 }
 
 // pub fn base_position(mycoords: Res<MyWorldCoords>, mut query: Query<&mut Transform, With<Base>>) {

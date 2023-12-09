@@ -18,40 +18,46 @@ impl Plugin for EffectPlugin {
     }
 }
 
-#[derive(Component, Debug)]
-pub struct BlockEffect(pub EffectType);
-
 #[derive(Debug, Clone, Copy)]
 pub enum EffectType {
     Glue,
+    Platform,
+    Magnetic,
 }
 
-pub fn add_random_effect(commands: &mut Commands, assets: &mut AssetServer, entity: Entity) {
-    let rand = rand::random::<u8>() % 10;
-    //let rand = 2;
-    let res = match rand {
-        0 => Some((
-            commands.entity(entity).insert(GlueEffect::default()).id(),
-            "glue.png",
-        )),
-        // 1 => Some((
-        //     commands
-        //         .entity(entity)
-        //         .insert(PlatformEffect::default())
-        //         .id(),
-        //     "fixed.png",
-        // )),
-        2 => Some((
-            commands
-                .entity(entity)
-                .insert(magnetic::MagneticEffect::default())
-                .id(),
-            "magnet-on.png",
-        )),
-        _ => None,
-    };
+pub const ALL_EFFECTS: [EffectType; 3] =
+    [EffectType::Glue, EffectType::Platform, EffectType::Magnetic];
 
-    if let Some((entity, texture)) = res {
+pub const DEFAULT_EFFECTS: [EffectType; 2] = [EffectType::Glue, EffectType::Magnetic];
+
+impl EffectType {
+    pub fn texture(&self) -> &'static str {
+        match self {
+            EffectType::Glue => "glue.png",
+            EffectType::Platform => "fixed.png",
+            EffectType::Magnetic => "magnet.png",
+        }
+    }
+
+    fn insert_effect(&self, commands: &mut Commands, entity: Entity) {
+        match self {
+            EffectType::Glue => {
+                commands.entity(entity).insert(GlueEffect::default());
+            }
+            EffectType::Platform => {
+                commands.entity(entity).insert(PlatformEffect::default());
+            }
+            EffectType::Magnetic => {
+                commands
+                    .entity(entity)
+                    .insert(magnetic::MagneticEffect::default());
+            }
+        }
+    }
+
+    pub fn enable(&self, commands: &mut Commands, assets: &mut AssetServer, entity: Entity) {
+        self.insert_effect(commands, entity);
+        let texture = self.texture();
         commands.entity(entity).with_children(|parent| {
             parent.spawn(SpriteBundle {
                 texture: assets.load(texture),

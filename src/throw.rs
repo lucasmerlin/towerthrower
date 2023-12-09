@@ -3,11 +3,14 @@ use std::f32::consts::PI;
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use rand::prelude::SliceRandom;
+use rand::{random, thread_rng};
 
 use crate::block::{Aiming, Block, BlockType, Falling};
 use crate::camera_movement::CameraMovement;
 use crate::cursor_system::CursorCoords;
 use crate::effect::magnetic::{calculate_magnetic_impulse, MagneticEffect};
+use crate::effect::EffectType;
 use crate::launch_platform::LaunchPlatform;
 use crate::level::{Level, LevelStats, UpdateLevelStats};
 use crate::state::LevelState;
@@ -73,7 +76,7 @@ impl Aim {
 #[derive(Resource, Debug)]
 pub struct ThrowQueue {
     pub target_length: usize,
-    pub queue: Vec<BlockType>,
+    pub queue: Vec<(BlockType, Option<EffectType>)>,
 }
 impl Default for ThrowQueue {
     fn default() -> Self {
@@ -265,10 +268,11 @@ pub fn create_aiming_block(
     mut launch_platform_query: Query<&Transform, With<LaunchPlatform>>,
 ) {
     if query.iter().count() == 0 {
-        if let Some(block_type) = throw_queue.queue.pop() {
+        if let Some((block_type, effect_type)) = throw_queue.queue.pop() {
             let launch_platform_transform = launch_platform_query.single();
             Block::spawn(
                 &mut commands,
+                effect_type,
                 block_type,
                 Vec2::new(
                     launch_platform_transform.translation.x,
@@ -291,10 +295,25 @@ pub fn update_aiming_block_position(
     }
 }
 
+fn throw_queue_item(level: &Level) -> (BlockType, Option<EffectType>) {
+    let effect = if random::<f32>() < level.effect_likelihood {
+        level
+            .enabled_effects
+            .choose_weighted(&mut thread_rng(), |(effect, weight)| *weight)
+            .ok()
+            .map(|(effect, _)| *effect)
+    } else {
+        None
+    };
+    let block = BlockType::random();
+
+    (block, effect)
+}
+
 pub fn setup_throw_queue(mut throw_queue: ResMut<ThrowQueue>, level: Res<Level>) {
     if let Some(max_blocks) = level.max_blocks {
         for _ in 0..max_blocks {
-            throw_queue.queue.push(BlockType::random());
+            throw_queue.queue.push(throw_queue_item(&level));
         }
         throw_queue.target_length = 0;
     } else {
@@ -308,7 +327,7 @@ pub fn fill_throw_queue(
     level_stats: Res<LevelStats>,
 ) {
     while throw_queue.queue.len() < throw_queue.target_length {
-        throw_queue.queue.push(BlockType::random());
+        throw_queue.queue.push(throw_queue_item(&level));
     }
 }
 

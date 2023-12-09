@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
 
 use crate::block::{Aiming, Block, Falling};
+use crate::effect::EffectType;
 use crate::state::LevelState;
 
 pub struct LevelPlugin;
@@ -47,14 +48,47 @@ pub enum UpdateLevelStats {
     CarHit,
 }
 
+#[derive(Debug, Clone)]
+pub struct LevelBase {
+    pub width: f32,
+    pub translation: Vec2,
+    pub rotation: f32,
+}
+
+const fn default_level_base() -> LevelBase {
+    LevelBase {
+        width: 100.0,
+        translation: Vec2::ZERO,
+        rotation: 0.0,
+    }
+}
+
 #[derive(Resource, Debug, Clone)]
 pub struct Level {
     pub level: usize,
     pub goal: LevelGoal,
     pub max_blocks: Option<usize>,
     pub time_limit: Option<Duration>,
-    pub base_width: f32,
+    pub bases: &'static [LevelBase],
+    pub enabled_effects: &'static [(EffectType, f32)],
+    pub effect_likelihood: f32,
 }
+
+pub const DEFAULT_EFFECTS: [(EffectType, f32); 2] =
+    [(EffectType::Glue, 1.0), (EffectType::Magnetic, 1.0)];
+
+pub const DEFAULT_LEVEL: Level = Level {
+    level: 0,
+    goal: LevelGoal::ReachHeight(200.0),
+    time_limit: Some(Duration::from_secs(60)),
+    max_blocks: None,
+    bases: &[LevelBase {
+        width: 160.0,
+        ..default_level_base()
+    }],
+    enabled_effects: &DEFAULT_EFFECTS,
+    effect_likelihood: 0.05,
+};
 
 #[derive(Debug, Clone)]
 pub enum LevelGoal {
@@ -68,41 +102,81 @@ pub struct NextLevel(pub Option<usize>);
 #[derive(Component, Debug, Clone)]
 pub struct LevelLifecycle;
 
-pub static LEVELS: [Level; 5] = [
+pub static LEVELS: [Level; 6] = [
     Level {
         level: 0,
         goal: LevelGoal::ReachHeight(200.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: None,
-        base_width: 10000.0,
+        bases: &[LevelBase {
+            width: 10000.0,
+            ..default_level_base()
+        }],
+        ..DEFAULT_LEVEL
     },
     Level {
         level: 1,
         goal: LevelGoal::ReachHeight(200.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: None,
-        base_width: 160.0,
+        bases: &[LevelBase {
+            width: 160.0,
+            ..default_level_base()
+        }],
+        ..DEFAULT_LEVEL
     },
     Level {
         level: 2,
         goal: LevelGoal::ReachBlockCount(10),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(13),
-        base_width: 80.0,
+        bases: &[LevelBase {
+            width: 80.0,
+            ..default_level_base()
+        }],
+        ..DEFAULT_LEVEL
     },
     Level {
         level: 3,
         goal: LevelGoal::ReachHeight(200.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(30),
-        base_width: 120.0,
+        bases: &[LevelBase {
+            width: 120.0,
+            ..default_level_base()
+        }],
+        ..DEFAULT_LEVEL
     },
     Level {
         level: 4,
         goal: LevelGoal::ReachBlockCount(20),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(25),
-        base_width: 100.0,
+        bases: &[LevelBase {
+            width: 100.0,
+            ..default_level_base()
+        }],
+        ..DEFAULT_LEVEL
+    },
+    Level {
+        level: 5,
+        goal: LevelGoal::ReachHeight(350.0),
+        time_limit: Some(Duration::from_secs(60)),
+        max_blocks: Some(25),
+        bases: &[
+            LevelBase {
+                width: 60.0,
+                translation: Vec2::new(80.0, 0.0),
+                ..default_level_base()
+            },
+            LevelBase {
+                width: 60.0,
+                translation: Vec2::new(-80.0, 0.0),
+                ..default_level_base()
+            },
+        ],
+        enabled_effects: &[(EffectType::Glue, 1.0)],
+        ..DEFAULT_LEVEL
     },
 ];
 

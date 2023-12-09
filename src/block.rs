@@ -5,7 +5,7 @@ use bevy::sprite::Anchor;
 use bevy_rapier2d::prelude::*;
 use rand::Rng;
 
-use crate::effect::add_random_effect;
+use crate::effect::EffectType;
 use crate::floor::Floor;
 use crate::level::LevelLifecycle;
 use crate::state::LevelState;
@@ -270,6 +270,7 @@ impl Block {
 
     pub fn spawn(
         mut commands: &mut Commands,
+        effect: Option<EffectType>,
         block_type: BlockType,
         position: Vec2,
         assets: &mut AssetServer,
@@ -283,11 +284,11 @@ impl Block {
                 LevelLifecycle,
                 SpriteBundle {
                     transform: Transform::from_xyz(position.x, position.y, 0.0),
-                    texture: assets.load("blocks/J/1.png"),
-                    sprite: Sprite {
-                        custom_size: Some(Vec2::new(width, height)),
-                        ..Default::default()
-                    },
+                    //texture: assets.load("blocks/J/1.png"),
+                    // sprite: Sprite {
+                    //     custom_size: Some(Vec2::new(width, height)),
+                    //     ..Default::default()
+                    // },
                     ..Default::default()
                 },
                 RigidBody::KinematicVelocityBased,
@@ -313,21 +314,9 @@ impl Block {
             ))
             .id();
 
-        // commands.entity(entity).with_children(|parent| {
-        //     parent.spawn((
-        //         SpriteBundle {
-        //             sprite: Sprite {
-        //                 color: Color::rgba_u8(203, 158, 255, 100),
-        //                 custom_size: Some(Vec2::new(width, 100000.0)),
-        //                 ..Default::default()
-        //             },
-        //             ..Default::default()
-        //         },
-        //         TargetBeam,
-        //     ));
-        // });
-
-        add_random_effect(&mut commands, assets, entity);
+        if let Some(effect) = effect {
+            effect.enable(&mut commands, assets, entity);
+        }
         entity
     }
 }
