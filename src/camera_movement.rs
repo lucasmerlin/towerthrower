@@ -38,7 +38,7 @@ pub fn camera_movement_system(
 
     if highest > camera_movement.height {
         camera_movement.height += increase;
-    } else {
+    } else if highest < camera_movement.height - increase {
         camera_movement.height -= increase;
     }
 

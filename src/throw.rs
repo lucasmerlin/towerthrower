@@ -362,8 +362,7 @@ pub fn update_aim_from_mouse_position_system(
     mut input: ResMut<Input<KeyCode>>,
 ) {
     let mouse_position = mouse_position.0;
-    let mut query = query.iter_mut();
-    if let Some(mut transform) = query.next() {
+    if let Ok(mut transform) = query.get_single() {
         // let force =
         //     calculate_velocity_for_throw(transform.translation.xy(), mouse_position, aim.direction);
         //
@@ -377,7 +376,7 @@ pub fn update_aim_from_mouse_position_system(
 
         let direct_aim = force_factor > 0.0;
 
-        for _ in 0..1000 {
+        for _ in 0..10000 {
             // let switch_aim = input.pressed(KeyCode::ControlLeft);
             //
             // let angle =
@@ -393,7 +392,7 @@ pub fn update_aim_from_mouse_position_system(
                 direct_aim,
             );
             if shot.is_none() {
-                min_force += 1.0;
+                min_force += 0.1;
             } else {
                 break;
             }
