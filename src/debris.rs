@@ -1,10 +1,11 @@
-use crate::block::{Block, DestroyBlockOnContact, BLOCK_SIZE};
+use crate::block::{Block, BlockType, DestroyBlockOnContact, BLOCK_SIZE};
 use crate::consts::{BLOCK_COLLISION_GROUP, DEBRIS_COLLISION_GROUP};
 use crate::floor::Floor;
 use crate::level::{LevelLifecycle, UpdateLevelStats};
+use bevy::audio::{Volume, VolumeLevel};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use rand::random;
+use rand::{random, thread_rng, Rng};
 
 pub struct DebrisPlugin;
 
@@ -33,6 +34,7 @@ pub fn block_to_debris_system(
     mut floor_query: Query<&mut DestroyBlockOnContact>,
     mut block_query: Query<(Entity, &Block, &Transform, &Velocity)>,
     mut update_level_stats_events: EventWriter<UpdateLevelStats>,
+    assets: Res<AssetServer>,
 ) {
     for event in collision_events.read() {
         match event {
@@ -49,14 +51,24 @@ pub fn block_to_debris_system(
                             commands.spawn((
                                 Debris::default(),
                                 LevelLifecycle,
-                                SpatialBundle::from(
-                                    Transform::from_xyz(
-                                        transform.translation.x + pos.x,
-                                        transform.translation.y + pos.y,
+                                SpriteBundle {
+                                    transform: Transform::from_xyz(
+                                        transform.translation.x,
+                                        transform.translation.y,
                                         0.0,
                                     )
                                     .with_rotation(transform.rotation),
-                                ),
+
+                                    texture: assets.load(format!(
+                                        "debris/debris_{}.png",
+                                        thread_rng().gen_range(1..=3)
+                                    )),
+                                    sprite: Sprite {
+                                        custom_size: Some(Vec2::new(BLOCK_SIZE, BLOCK_SIZE)),
+                                        ..Default::default()
+                                    },
+                                    ..Default::default()
+                                },
                                 RigidBody::Dynamic,
                                 Collider::cuboid(BLOCK_SIZE / 2.0, BLOCK_SIZE / 2.0),
                                 Friction::coefficient(0.5),
@@ -75,6 +87,20 @@ pub fn block_to_debris_system(
                         }
 
                         update_level_stats_events.send(UpdateLevelStats::BlockDestroyed);
+
+                        // Since O always has a window, we play the glass sound
+                        let sound = if block.block_type == BlockType::O {
+                            "sounds/glass.wav"
+                        } else {
+                            "sounds/debris.wav"
+                        };
+                        commands.spawn(AudioBundle {
+                            source: assets.load(sound),
+                            settings: PlaybackSettings {
+                                volume: Volume::Relative(VolumeLevel::new(0.7)),
+                                ..PlaybackSettings::DESPAWN
+                            },
+                        });
                     }
                 })
             }

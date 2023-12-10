@@ -1,4 +1,5 @@
 use crate::{ASSET_SCALE, CAR_SCALE, FLOOR_HEIGHT, HORIZONTAL_VIEWPORT_SIZE};
+use bevy::audio::{Volume, VolumeLevel};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -24,7 +25,7 @@ impl Plugin for DebrisCleanerPlugin {
 pub struct DebrisCleaner;
 
 pub const DEBRIS_CLEANER_THRESHOLD: usize = 30;
-pub const DEBRIS_CLEANER_RANGE: f32 = 6.0;
+pub const DEBRIS_CLEANER_RANGE: f32 = 8.0;
 pub const DEBRIS_CLEANER_FORCE: f32 = 2.0;
 
 pub fn spawn_debris_cleaner(
@@ -47,7 +48,7 @@ pub fn spawn_debris_cleaner(
             DebrisCleaner,
             LevelLifecycle,
             SpriteBundle {
-                transform: Transform::from_xyz(HORIZONTAL_VIEWPORT_SIZE, FLOOR_HEIGHT + 1.0, 0.0)
+                transform: Transform::from_xyz(HORIZONTAL_VIEWPORT_SIZE, FLOOR_HEIGHT + 1.0, 0.1)
                     .with_rotation(Quat::from_rotation_z(0.0)),
                 texture: assets.load("cars/garbage_collector.png"),
                 sprite: Sprite {
@@ -57,7 +58,7 @@ pub fn spawn_debris_cleaner(
                 ..Default::default()
             },
             RigidBody::KinematicVelocityBased,
-            Collider::cuboid(size.x / 2.0, size.y / 2.0),
+            Collider::cuboid(size.x / 3.0, size.y / 2.0),
             Friction::coefficient(0.5),
             Velocity::linear(Vec2::new(-4.0, 0.0)),
             ActiveEvents::COLLISION_EVENTS,
@@ -112,8 +113,11 @@ pub fn debris_cleaner_collision(
                             commands.entity(debris).despawn_recursive();
                             commands.spawn(
                                 (AudioBundle {
-                                    source: assets.load("sounds/debris_collect.wav"),
-                                    settings: PlaybackSettings::DESPAWN,
+                                    source: assets.load("sounds/whoosh.wav"),
+                                    settings: PlaybackSettings {
+                                        volume: Volume::Relative(VolumeLevel::new(0.5)),
+                                        ..PlaybackSettings::DESPAWN
+                                    },
                                 }),
                             );
                         }

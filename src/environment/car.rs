@@ -1,11 +1,11 @@
 use bevy::prelude::*;
-use bevy::render::render_resource::Texture;
 use bevy::sprite::Anchor;
 use bevy_rapier2d::prelude::*;
 use rand::prelude::SliceRandom;
 use rand::{random, thread_rng, Rng};
 
 use crate::block::{Block, DestroyBlockOnContact};
+use crate::collision_sounds::CollisionSound;
 use crate::consts::{BLOCK_COLLISION_GROUP, FLOOR_COLLISION_GROUP};
 use crate::environment::rain::DarkenSpriteOnRain;
 use crate::level::{LevelLifecycle, UpdateLevelStats};
@@ -169,6 +169,11 @@ pub fn spawn_car_system(
                 Car {
                     state: CarState::Driving,
                     car_type: *car_type,
+                },
+                CollisionSound {
+                    sound: "car_crash.wav",
+                    weight: 2.0,
+                    ..Default::default()
                 },
                 LevelLifecycle,
                 DestroyBlockOnContact,

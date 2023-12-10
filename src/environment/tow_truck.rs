@@ -82,7 +82,7 @@ pub fn tow_car_system(
         {
             match tow_truck.phase {
                 TowTruckPhase::MovingToTarget => {
-                    if tow_truck_transform.translation.x > car_transform.translation.x + 7.0 {
+                    if tow_truck_transform.translation.x > car_transform.translation.x + 5.0 {
                         tow_truck.phase = TowTruckPhase::RaisingCar;
                         beam_event_writer.send(BeamEvent {
                             source: tow_truck_entity,

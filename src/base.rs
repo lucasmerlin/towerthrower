@@ -1,4 +1,5 @@
 use crate::block::BLOCK_SIZE;
+use crate::collision_sounds::CollisionSound;
 use crate::consts::BASE_COLLISION_GROUP;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
@@ -82,6 +83,7 @@ pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>, mut l
 
         commands
             .spawn((
+                CollisionSound::default(),
                 Base,
                 LevelLifecycle,
                 SpatialBundle::from(

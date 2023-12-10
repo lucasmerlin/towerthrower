@@ -1,5 +1,6 @@
 use std::f32::consts::FRAC_PI_2;
 
+use crate::collision_sounds::CollisionSound;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use rand::{thread_rng, Rng};
@@ -39,7 +40,7 @@ impl Default for SpawnTimer {
 }
 
 /// tetris like block
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum BlockType {
     I,
     O,
@@ -52,12 +53,12 @@ pub enum BlockType {
 
 pub const BLOCK_SIZE: f32 = 1.0;
 
-pub const BLOCKS: [BlockType; 5] = [
+pub const BLOCKS: [BlockType; 7] = [
     BlockType::I,
     BlockType::O,
     BlockType::T,
-    // BlockType::S,
-    // BlockType::Z,
+    BlockType::S,
+    BlockType::Z,
     BlockType::J,
     BlockType::L,
 ];
@@ -322,6 +323,12 @@ impl Block {
             .spawn((
                 self,
                 LevelLifecycle,
+                CollisionSound {
+                    sound: "concrete.wav",
+                    weight: 1.0,
+                    ..Default::default()
+                },
+                //ContactForceEventThreshold(100.0),
                 SpriteBundle {
                     transform: Transform::from_xyz(position.x, position.y, 0.0)
                         .with_rotation(Quat::from_rotation_z(initial_rotation)),
@@ -331,7 +338,7 @@ impl Block {
                 },
                 RigidBody::KinematicVelocityBased,
                 block_type.build_collider(),
-                ActiveEvents::COLLISION_EVENTS,
+                ActiveEvents::COLLISION_EVENTS | ActiveEvents::CONTACT_FORCE_EVENTS,
                 //ColliderMassProperties::Mass(1.0),
                 ReadMassProperties::default(),
                 Friction::coefficient(level.friction),

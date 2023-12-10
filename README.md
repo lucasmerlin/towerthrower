@@ -10,3 +10,12 @@ trade-offs in building stability had to be made...
 https://freesound.org/people/colorsCrimsonTears/sounds/580310/
 https://sfxr.me/
 
+https://freesound.org/people/OtisJames/sounds/215162/
+https://freesound.org/people/Reitanna/sounds/332668/
+https://freesound.org/people/CaptainYulef/sounds/638616/
+https://freesound.org/people/GWMX_YOUTUBE03/sounds/339114/
+https://freesound.org/people/discofield/sounds/711656/
+https://freesound.org/people/qubodup/sounds/60013/
+https://freesound.org/people/metrostock99/sounds/345085/
+https://freesound.org/people/RoganMcDougald/sounds/260434/
+https://freesound.org/people/FreqMan/sounds/43603/

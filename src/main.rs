@@ -9,6 +9,7 @@ use bevy_rapier2d::prelude::*;
 use crate::base::BasePlugin;
 use crate::block::{BlockPlugin, CaughtBlock, FallingBlockCollision, SpawnTimer};
 use crate::camera_movement::{camera_movement_system, CameraMovement};
+use crate::collision_sounds::CollisionSoundPlugin;
 use crate::cursor_system::{my_cursor_system, CursorCoords};
 use crate::debris::DebrisPlugin;
 use crate::effect::EffectPlugin;
@@ -26,6 +27,7 @@ use crate::ui::UiPlugin;
 mod base;
 mod block;
 mod camera_movement;
+mod collision_sounds;
 mod consts;
 mod cursor_system;
 mod debris;
@@ -108,6 +110,7 @@ fn main() {
                 LevelUiPlugin,
                 UiPlugin,
                 LevelIntroDialogPlugin,
+                CollisionSoundPlugin,
             ),
         ))
         .add_systems(Startup, (setup_graphics, setup_physics))
