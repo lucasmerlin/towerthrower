@@ -55,7 +55,7 @@ pub const _4K_H_RESOLUTION: f32 = 3840.0;
 pub const ASSET_SCALE: f32 = HORIZONTAL_VIEWPORT_SIZE / _4K_H_RESOLUTION;
 pub const FLOOR_HEIGHT: f32 = 1.0;
 
-pub const CAR_MIN_HEIGHT: f32 = FLOOR_HEIGHT + 2.0;
+pub const CAR_MIN_HEIGHT: f32 = FLOOR_HEIGHT + 3.0;
 
 pub const CAR_MAX_HEIGHT: f32 = 7.0;
 
@@ -85,7 +85,7 @@ fn main() {
             {
                 let mut debug = RapierDebugRenderPlugin::default();
                 debug.style.rigid_body_axes_length = 0.3;
-                //debug.enabled = false;
+                debug.enabled = false;
                 debug
             },
             EguiPlugin,

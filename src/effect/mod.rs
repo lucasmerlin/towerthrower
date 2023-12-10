@@ -55,7 +55,7 @@ impl EffectType {
         }
     }
 
-    pub fn enable(&self, commands: &mut Commands, assets: &mut AssetServer, entity: Entity) {
+    pub fn enable(&self, commands: &mut Commands, assets: &AssetServer, entity: Entity) {
         self.insert_effect(commands, entity);
         let texture = self.texture();
         commands.entity(entity).with_children(|parent| {

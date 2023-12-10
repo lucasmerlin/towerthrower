@@ -1,11 +1,10 @@
 use std::f32::consts::FRAC_PI_2;
 
-use crate::consts::BLOCK_COLLISION_GROUP;
 use bevy::prelude::*;
-use bevy::sprite::Anchor;
 use bevy_rapier2d::prelude::*;
-use rand::Rng;
+use rand::{thread_rng, Rng};
 
+use crate::consts::BLOCK_COLLISION_GROUP;
 use crate::effect::EffectType;
 use crate::floor::Floor;
 use crate::level::{Level, LevelLifecycle};
@@ -53,18 +52,19 @@ pub enum BlockType {
 
 pub const BLOCK_SIZE: f32 = 1.0;
 
-pub const BLOCKS: [BlockType; 7] = [
+pub const BLOCKS: [BlockType; 5] = [
     BlockType::I,
     BlockType::O,
     BlockType::T,
-    BlockType::S,
-    BlockType::Z,
+    // BlockType::S,
+    // BlockType::Z,
     BlockType::J,
     BlockType::L,
 ];
 
 impl BlockType {
     pub fn random() -> Self {
+        //return Self::J;
         let mut rng = rand::thread_rng();
         BLOCKS[rng.gen_range(0..BLOCKS.len())]
     }
@@ -229,11 +229,26 @@ impl BlockType {
     pub fn height(&self) -> f32 {
         self.block_height() * BLOCK_SIZE
     }
+
+    pub fn letter(&self) -> &'static str {
+        match self {
+            BlockType::I => "I",
+            BlockType::O => "O",
+            BlockType::T => "T",
+            BlockType::S => "S",
+            BlockType::Z => "Z",
+            BlockType::J => "J",
+            BlockType::L => "L",
+        }
+    }
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Block {
     pub block_type: BlockType,
+    pub effect_type: Option<EffectType>,
+    pub variant: usize,
+    pub initial_rotation: f32,
 }
 
 #[derive(Component)]
@@ -263,33 +278,56 @@ pub struct FallingBlockCollision {
 }
 
 impl Block {
-    pub fn new(block_type: BlockType) -> Self {
-        Self { block_type }
+    pub fn new(
+        block_type: BlockType,
+        variant: usize,
+        effect_type: Option<EffectType>,
+        initial_rotation: f32,
+    ) -> Self {
+        Self {
+            block_type,
+            variant,
+            effect_type,
+            initial_rotation,
+        }
+    }
+
+    pub fn sprite(&self, assets: &AssetServer) -> SpriteBundle {
+        SpriteBundle {
+            texture: assets.load(format!(
+                "blocks/{}/{}.png",
+                self.block_type.letter(),
+                self.variant,
+            )),
+            sprite: Sprite {
+                custom_size: Some(Vec2::new(self.block_type.width(), self.block_type.height())),
+                ..Default::default()
+            },
+            ..Default::default()
+        }
     }
 
     pub fn spawn(
+        self,
         mut commands: &mut Commands,
-        effect: Option<EffectType>,
-        block_type: BlockType,
         position: Vec2,
-        assets: &mut AssetServer,
+        assets: &AssetServer,
         level: &Level,
     ) -> Entity {
-        let block = Block::new(block_type);
-        let width = block_type.width();
-        let height = block_type.height();
+        let effect_type = self.effect_type;
+        let block_type = self.block_type;
+        let sprite = self.sprite(assets);
+        let initial_rotation = self.initial_rotation;
         let entity = commands
             .spawn((
-                block,
+                self,
                 LevelLifecycle,
                 SpriteBundle {
-                    transform: Transform::from_xyz(position.x, position.y, 0.0),
-                    //texture: assets.load("blocks/J/1.png"),
-                    // sprite: Sprite {
-                    //     custom_size: Some(Vec2::new(width, height)),
-                    //     ..Default::default()
-                    // },
-                    ..Default::default()
+                    transform: Transform::from_xyz(position.x, position.y, 0.0)
+                        .with_rotation(Quat::from_rotation_z(initial_rotation)),
+                    // While we're aiming the block it should be hidden
+                    visibility: Visibility::Hidden,
+                    ..sprite
                 },
                 RigidBody::KinematicVelocityBased,
                 block_type.build_collider(),
@@ -314,7 +352,7 @@ impl Block {
             ))
             .id();
 
-        if let Some(effect) = effect {
+        if let Some(effect) = effect_type {
             effect.enable(&mut commands, assets, entity);
         }
         entity

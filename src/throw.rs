@@ -2,9 +2,10 @@ use std::f32::consts::PI;
 
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
+use bevy::render::settings::settings_priority_from_env;
 use bevy_rapier2d::prelude::*;
 use rand::prelude::SliceRandom;
-use rand::{random, thread_rng};
+use rand::{random, thread_rng, Rng};
 
 use crate::block::{Aiming, Block, BlockType, Falling};
 use crate::camera_movement::CameraMovement;
@@ -78,7 +79,7 @@ impl Aim {
 #[derive(Resource, Debug)]
 pub struct ThrowQueue {
     pub target_length: usize,
-    pub queue: Vec<(BlockType, Option<EffectType>)>,
+    pub queue: Vec<Block>,
 }
 impl Default for ThrowQueue {
     fn default() -> Self {
@@ -91,6 +92,8 @@ impl Default for ThrowQueue {
 
 #[derive(Component, Debug)]
 pub struct TargetIndicator;
+#[derive(Component, Debug)]
+pub struct TargetIndicatorBlock;
 
 pub fn remove_simulation_system(
     mut commands: Commands,
@@ -109,12 +112,13 @@ pub fn simulate_throw_system(
     mut commands: Commands,
     mut aim: ResMut<Aim>,
     aimed_block: Query<
-        (Entity, &Collider, &Transform, &ReadMassProperties),
-        (With<Block>, With<Aiming>),
+        (Entity, &Block, &Collider, &Transform, &ReadMassProperties),
+        (With<Aiming>),
     >,
     has_falling_block: Query<Entity, With<Falling>>,
     rapier_context: Res<RapierContext>,
-    old_target_indicators: Query<Entity, With<TargetIndicator>>,
+    old_target_indicators: Query<Entity, (With<TargetIndicator>, Without<TargetIndicatorBlock>)>,
+    target_indicator_block_query: Query<Entity, With<TargetIndicatorBlock>>,
     magnets: Query<
         (Entity, &Transform, &MagneticEffect),
         (Without<Falling>, Without<Aiming>, With<Block>),
@@ -140,7 +144,7 @@ pub fn simulate_throw_system(
         return;
     }
 
-    if let Ok((aimed, aimed_collider, aimed_transform, mass)) = aimed_block.get_single() {
+    if let Ok((aimed, block, aimed_collider, aimed_transform, mass)) = aimed_block.get_single() {
         let mut t = 0.0;
         let dt = PHYSICS_DT;
 
@@ -252,21 +256,15 @@ pub fn simulate_throw_system(
             ));
         }
 
-        // spawn new target indicator
-        commands.spawn((
-            SpriteBundle {
-                transform,
-                texture: assets.load("aim.png"),
-                sprite: Sprite {
-                    custom_size: Some(Vec2::new(1.0, 1.0)),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-            TargetIndicator,
-            shape,
-            Sensor,
-        ));
+        let target_indicator_block = target_indicator_block_query.get_single();
+        if let Ok(target_indicator_block) = target_indicator_block {
+            commands.entity(target_indicator_block).insert(transform);
+        } else {
+            let mut sprite = block.sprite(&*assets);
+            sprite.transform = transform;
+            sprite.sprite.color = Color::rgba(1.0, 1.0, 1.0, 0.5);
+            commands.spawn((sprite, TargetIndicator, TargetIndicatorBlock, shape, Sensor));
+        }
     }
 }
 
@@ -274,23 +272,21 @@ pub fn create_aiming_block(
     mut commands: Commands,
     mut throw_queue: ResMut<ThrowQueue>,
     mut query: Query<(Entity), With<Aiming>>,
-    mut assets: ResMut<AssetServer>,
+    assets: Res<AssetServer>,
     mut camera_movement: ResMut<CameraMovement>,
     mut launch_platform_query: Query<&Transform, With<LaunchPlatform>>,
     level: Res<Level>,
 ) {
     if query.iter().count() == 0 {
-        if let Some((block_type, effect_type)) = throw_queue.queue.pop() {
+        if let Some(block) = throw_queue.queue.pop() {
             let launch_platform_transform = launch_platform_query.single();
-            Block::spawn(
+            block.spawn(
                 &mut commands,
-                effect_type,
-                block_type,
                 Vec2::new(
                     launch_platform_transform.translation.x,
                     launch_platform_transform.translation.y + 0.0,
                 ),
-                &mut assets,
+                &assets,
                 &*level,
             );
         }
@@ -308,7 +304,7 @@ pub fn update_aiming_block_position(
     }
 }
 
-fn throw_queue_item(level: &Level) -> (BlockType, Option<EffectType>) {
+fn throw_queue_item(level: &Level) -> Block {
     let effect = if random::<f32>() < level.effect_likelihood {
         level
             .enabled_effects
@@ -319,8 +315,11 @@ fn throw_queue_item(level: &Level) -> (BlockType, Option<EffectType>) {
         None
     };
     let block = BlockType::random();
+    let variant = thread_rng().gen_range(1..=5);
 
-    (block, effect)
+    let initial_rotation = thread_rng().gen_range(0..4) as f32 * PI / 2.0;
+
+    Block::new(block, variant, effect, initial_rotation)
 }
 
 pub fn setup_throw_queue(mut throw_queue: ResMut<ThrowQueue>, level: Res<Level>) {
@@ -482,6 +481,7 @@ pub fn throw_system(
     mut aim: ResMut<Aim>,
     mut query: Query<(Entity), With<Aiming>>,
     mut update_level_stats_event: EventWriter<UpdateLevelStats>,
+    target_indicator_block_query: Query<Entity, With<TargetIndicatorBlock>>,
 ) {
     if input.just_pressed(KeyCode::Space)
         || mouse_button_input.just_pressed(MouseButton::Left)
@@ -497,9 +497,14 @@ pub fn throw_system(
                     RigidBody::Dynamic,
                     Sleeping::disabled(),
                     aim.velocity(),
+                    Visibility::Visible,
                 ));
 
             update_level_stats_event.send(UpdateLevelStats::BlockThrown);
+        }
+
+        for entity in target_indicator_block_query.iter() {
+            commands.entity(entity).despawn_recursive();
         }
     }
 }

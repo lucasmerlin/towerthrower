@@ -29,7 +29,7 @@ pub fn update_level_intro_dialog(
     level: Res<Level>,
 ) {
     if dialog.visible {
-        egui::Window::new("Level Intro")
+        egui::Window::new("Level Introo")
             .collapsible(false)
             .resizable(false)
             .title_bar(false)
@@ -40,17 +40,22 @@ pub fn update_level_intro_dialog(
                     .inner_margin(8.0),
             )
             .show(egui.ctx_mut(), |ui| {
-                ui.set_min_size(egui::Vec2::new(400.0, 300.0));
+                ui.set_min_width(200.0);
 
-                ui.heading("Level Intro");
+                ui.heading(format!("Level {}", level.level + 1));
 
                 ui.label(level.intro_text);
 
-                ui.with_layout(egui::Layout::bottom_up(egui::Align::Center), |ui| {
-                    if ui.button("START").clicked() {
-                        dialog.visible = false;
-                    }
-                });
+                ui.add_space(50.0);
+
+                ui.with_layout(
+                    egui::Layout::top_down_justified(egui::Align::Center),
+                    |ui| {
+                        if ui.button("START").clicked() {
+                            dialog.visible = false;
+                        }
+                    },
+                );
             });
     }
 }
