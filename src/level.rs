@@ -87,6 +87,7 @@ pub struct Level {
     pub enabled_effects: &'static [(EffectType, f32)],
     pub effect_likelihood: f32,
     pub intro_text: &'static str,
+    pub rain: Option<usize>,
 }
 
 pub const DEFAULT_EFFECTS: [(EffectType, f32); 2] =
@@ -104,6 +105,7 @@ pub const DEFAULT_LEVEL: Level = Level {
     enabled_effects: &DEFAULT_EFFECTS,
     effect_likelihood: 0.05,
     intro_text: "Welcome to the game!",
+    rain: None,
 };
 
 #[derive(Debug, Clone)]
@@ -143,6 +145,7 @@ pub static LEVELS: [Level; 6] = [
             base_type: BaseType::T9,
             ..default_level_base()
         }],
+        rain: Some(10),
         ..DEFAULT_LEVEL
     },
     Level {

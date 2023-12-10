@@ -5,6 +5,7 @@ mod car;
 pub mod city;
 mod debris_cleaner;
 pub mod fees;
+pub mod rain;
 mod tow_truck;
 
 pub struct EnvironmentPlugin;
@@ -18,6 +19,7 @@ impl Plugin for EnvironmentPlugin {
             beam::BeamPlugin,
             fees::FeesPlugin,
             city::CityPlugin,
+            rain::RainPlugin,
         ));
     }
 }

@@ -1,4 +1,5 @@
-use crate::block::{Block, DestroyBlockOnContact, BLOCK_COLLISION_GROUP, BLOCK_SIZE};
+use crate::block::{Block, DestroyBlockOnContact, BLOCK_SIZE};
+use crate::consts::{BLOCK_COLLISION_GROUP, DEBRIS_COLLISION_GROUP};
 use crate::floor::Floor;
 use crate::level::{LevelLifecycle, UpdateLevelStats};
 use bevy::prelude::*;
@@ -15,8 +16,6 @@ impl Plugin for DebrisPlugin {
 
 #[derive(Component, Debug)]
 pub struct Debris(Timer, Timer);
-
-pub const DEBRIS_COLLISION_GROUP: Group = Group::GROUP_3;
 
 impl Default for Debris {
     fn default() -> Self {

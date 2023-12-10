@@ -1,11 +1,13 @@
 use crate::block::BLOCK_SIZE;
+use crate::consts::BASE_COLLISION_GROUP;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use bevy_rapier2d::geometry::Collider;
 use bevy_rapier2d::plugin::systems::apply_scale;
-use bevy_rapier2d::prelude::{Friction, RigidBody, Velocity};
+use bevy_rapier2d::prelude::{CollisionGroups, Friction, Group, RigidBody, Velocity};
 
 use crate::cursor_system::CursorCoords;
+use crate::environment::rain::DarkenSpriteOnRain;
 use crate::level::{Level, LevelLifecycle};
 use crate::state::LevelState;
 use crate::HORIZONTAL_VIEWPORT_SIZE;
@@ -93,19 +95,26 @@ pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>, mut l
                 Collider::cuboid(width / 2.0, height / 2.0),
                 Friction::coefficient(0.5),
                 Velocity::linear(Vec2::new(0.0, 0.0)),
+                CollisionGroups {
+                    filters: Group::ALL,
+                    memberships: BASE_COLLISION_GROUP,
+                },
             ))
             .with_children(|parent| {
-                parent.spawn(SpriteBundle {
-                    // transform: Transform::from_xyz(0.0, 0.0, 0.0),
-                    texture,
-                    transform: Transform::from_xyz(0.0, height / 2.0, -7.0)
-                        .with_scale(Vec3::splat(image_scale)),
-                    sprite: Sprite {
-                        anchor: Anchor::TopCenter,
+                parent.spawn((
+                    SpriteBundle {
+                        // transform: Transform::from_xyz(0.0, 0.0, 0.0),
+                        texture,
+                        transform: Transform::from_xyz(0.0, height / 2.0, -7.0)
+                            .with_scale(Vec3::splat(image_scale)),
+                        sprite: Sprite {
+                            anchor: Anchor::TopCenter,
+                            ..Default::default()
+                        },
                         ..Default::default()
                     },
-                    ..Default::default()
-                });
+                    DarkenSpriteOnRain(1.0),
+                ));
             });
     }
 }

@@ -1,5 +1,6 @@
 use std::f32::consts::FRAC_PI_2;
 
+use crate::consts::BLOCK_COLLISION_GROUP;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use bevy_rapier2d::prelude::*;
@@ -234,8 +235,6 @@ impl BlockType {
 pub struct Block {
     pub block_type: BlockType,
 }
-
-pub const BLOCK_COLLISION_GROUP: Group = Group::GROUP_1;
 
 #[derive(Component)]
 pub struct Falling;

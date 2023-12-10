@@ -1,4 +1,5 @@
 use crate::block::DestroyBlockOnContact;
+use crate::consts::FLOOR_COLLISION_GROUP;
 use crate::level::LevelLifecycle;
 use crate::state::LevelState;
 use crate::FLOOR_HEIGHT;
@@ -15,8 +16,6 @@ impl Plugin for FloorPlugin {
 
 #[derive(Component, Debug)]
 pub struct Floor;
-
-pub const FLOOR_COLLISION_GROUP: Group = Group::GROUP_2;
 
 pub fn setup_floor(mut commands: Commands) {
     let width = 10000.0;

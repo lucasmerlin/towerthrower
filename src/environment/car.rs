@@ -2,8 +2,8 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use rand::{random, thread_rng, Rng};
 
-use crate::block::{DestroyBlockOnContact, BLOCK_COLLISION_GROUP};
-use crate::floor::FLOOR_COLLISION_GROUP;
+use crate::block::{Block, DestroyBlockOnContact};
+use crate::consts::{BLOCK_COLLISION_GROUP, FLOOR_COLLISION_GROUP};
 use crate::level::{LevelLifecycle, UpdateLevelStats};
 use crate::{CAR_MAX_HEIGHT, CAR_MIN_HEIGHT, HORIZONTAL_VIEWPORT_SIZE};
 
@@ -104,24 +104,35 @@ pub fn car_collision_system(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
     mut car_query: Query<(Entity, &mut Car)>,
+    mut block_query: Query<Entity, With<Block>>,
     mut car_crashed_events: EventWriter<CarCrashedEvent>,
     mut update_level_stats_events: EventWriter<UpdateLevelStats>,
 ) {
     for event in collision_events.read() {
         match event {
-            CollisionEvent::Started(a, b, _) => [a, b].into_iter().for_each(|entity| {
-                if let Ok((entity, mut car)) = car_query.get_mut(*entity) {
-                    if !matches!(car.state, CarState::Driving) {
-                        return;
-                    }
-                    car.state = CarState::Crashed {
-                        remove_debris_collision_timer: Timer::from_seconds(0.5, TimerMode::Once),
-                    };
-                    commands.entity(entity).insert((RigidBody::Dynamic,));
-                    car_crashed_events.send(CarCrashedEvent { entity });
-                    update_level_stats_events.send(UpdateLevelStats::CarHit);
-                }
-            }),
+            CollisionEvent::Started(a, b, _) => {
+                [(a, b), (b, a)]
+                    .into_iter()
+                    .for_each(|(car_entity, block_entity)| {
+                        if !block_query.get(*block_entity).is_ok() {
+                            return;
+                        }
+                        if let Ok((car_entity, mut car)) = car_query.get_mut(*car_entity) {
+                            if !matches!(car.state, CarState::Driving) {
+                                return;
+                            }
+                            car.state = CarState::Crashed {
+                                remove_debris_collision_timer: Timer::from_seconds(
+                                    0.5,
+                                    TimerMode::Once,
+                                ),
+                            };
+                            commands.entity(car_entity).insert((RigidBody::Dynamic,));
+                            car_crashed_events.send(CarCrashedEvent { entity: car_entity });
+                            update_level_stats_events.send(UpdateLevelStats::CarHit);
+                        }
+                    })
+            }
             CollisionEvent::Stopped(_, _, _) => {}
         }
     }

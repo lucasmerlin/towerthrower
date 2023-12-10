@@ -253,7 +253,7 @@ pub fn simulate_throw_system(
                 ..Default::default()
             },
             TargetIndicator,
-            shape,
+            //shape,
             Sensor,
         ));
     }

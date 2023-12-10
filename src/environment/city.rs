@@ -2,14 +2,16 @@ use bevy::prelude::*;
 use bevy::sprite::Anchor;
 
 use crate::camera_movement::CameraMovement;
+use crate::environment::rain::DarkenSpriteOnRain;
+use crate::level::Level;
 use crate::state::LevelState;
-use crate::{MainCamera, FLOOR_HEIGHT, HORIZONTAL_VIEWPORT_SIZE};
+use crate::MainCamera;
 
 pub struct CityPlugin;
 
 impl Plugin for CityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(LevelState::Playing), (setup_city))
+        app.add_systems(OnEnter(LevelState::Playing), setup_city)
             .add_systems(Update, update_auto_width);
     }
 }
@@ -21,115 +23,35 @@ pub struct AutoWidth {
     parallax: f32,
 }
 
-pub fn setup_city(mut commands: Commands, assets: Res<AssetServer>) {
-    let asset_size = Vec2::new(3840.0, 4634.0);
+pub fn setup_city(mut commands: Commands, assets: Res<AssetServer>, level: Res<Level>) {
+    let mut spawn = |width: f32, height: f32, z: f32, parallax: f32, open_top, name| {
+        let aspect_ratio = height / width;
+        commands.spawn((
+            AutoWidth {
+                aspect_ratio,
+                open_top,
+                parallax,
+            },
+            SpriteBundle {
+                transform: Transform::from_xyz(0.0, 0.0, z),
+                texture: assets.load(format!("parallax/{}.png", name)),
+                sprite: Sprite {
+                    custom_size: Some(Vec2::new(1.0, aspect_ratio)),
+                    anchor: Anchor::BottomCenter,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            DarkenSpriteOnRain(1.0),
+        ));
+    };
 
-    let aspect_ratio = asset_size.y / asset_size.x;
-
-    commands.spawn((
-        AutoWidth {
-            aspect_ratio,
-            open_top: true,
-            parallax: 0.5,
-        },
-        SpriteBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 100.0),
-            texture: assets.load("parallax/05_foreground.png"),
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(1.0, aspect_ratio)),
-                anchor: Anchor::BottomCenter,
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-    ));
-
-    commands.spawn((
-        AutoWidth {
-            aspect_ratio: 691.0 / 3840.0,
-            open_top: true,
-            parallax: 0.0,
-        },
-        SpriteBundle {
-            transform: Transform::from_xyz(0.0, 0.0, -5.0),
-            texture: assets.load("parallax/04_street.png"),
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(1.0, 691.0 / 3840.0)),
-                anchor: Anchor::BottomCenter,
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-    ));
-    commands.spawn((
-        AutoWidth {
-            aspect_ratio: 818.0 / 3840.0,
-            open_top: true,
-            parallax: 0.0,
-        },
-        SpriteBundle {
-            transform: Transform::from_xyz(0.0, 0.0, -10.0),
-            texture: assets.load("parallax/03_main.png"),
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(1.0, 818.0 / 3840.0)),
-                anchor: Anchor::BottomCenter,
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-    ));
-    commands.spawn((
-        AutoWidth {
-            aspect_ratio: 1465.0 / 3840.0,
-            open_top: true,
-            parallax: -0.2,
-        },
-        SpriteBundle {
-            transform: Transform::from_xyz(0.0, 0.0, -20.0),
-            texture: assets.load("parallax/02_middle.png"),
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(1.0, 1465.0 / 3840.0)),
-                anchor: Anchor::BottomCenter,
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-    ));
-    commands.spawn((
-        AutoWidth {
-            aspect_ratio: 1810.0 / 3840.0,
-            open_top: true,
-            parallax: -0.4,
-        },
-        SpriteBundle {
-            transform: Transform::from_xyz(0.0, 0.0, -30.0),
-            texture: assets.load("parallax/01_far_city.png"),
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(1.0, 1810.0 / 3840.0)),
-                anchor: Anchor::BottomCenter,
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-    ));
-
-    commands.spawn((
-        AutoWidth {
-            aspect_ratio,
-            open_top: false,
-            parallax: -0.5,
-        },
-        SpriteBundle {
-            transform: Transform::from_xyz(0.0, 0.0, -100.0),
-            texture: assets.load("parallax/00_sky.png"),
-            sprite: Sprite {
-                custom_size: Some(Vec2::new(1.0, aspect_ratio)),
-                anchor: Anchor::BottomCenter,
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-    ));
+    spawn(3840.0, 4634.0, 100.0, 0.5, true, "05_foreground");
+    spawn(3840.0, 691.0, -5.0, 0.0, true, "04_street");
+    spawn(3840.0, 818.0, -10.0, 0.0, true, "03_main");
+    spawn(3840.0, 1465.0, -20.0, -0.2, true, "02_middle");
+    spawn(3840.0, 1810.0, -30.0, -0.4, true, "01_far_city");
+    spawn(3840.0, 4634.0, -100.0, -0.5, false, "00_sky");
 }
 
 pub fn update_auto_width(

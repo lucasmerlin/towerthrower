@@ -25,6 +25,7 @@ use crate::ui::UiPlugin;
 mod base;
 mod block;
 mod camera_movement;
+mod consts;
 mod cursor_system;
 mod debris;
 mod effect;
@@ -75,6 +76,7 @@ fn main() {
             {
                 let mut debug = RapierDebugRenderPlugin::default();
                 debug.style.rigid_body_axes_length = 0.3;
+                debug.enabled = false;
                 debug
             },
             EguiPlugin,
