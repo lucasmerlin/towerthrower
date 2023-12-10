@@ -360,7 +360,7 @@ impl Block {
             .id();
 
         if let Some(effect) = effect_type {
-            effect.enable(&mut commands, assets, entity);
+            effect.enable(&mut commands, assets, entity, block_type);
         }
         entity
     }

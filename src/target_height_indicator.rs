@@ -1,3 +1,4 @@
+use crate::ASSET_SCALE;
 use bevy::prelude::*;
 
 use crate::level::{Level, LevelGoal, LevelLifecycle};
@@ -21,6 +22,7 @@ pub fn setup_target_height_indicator(
     mut commands: Commands,
     mut level: Res<Level>,
     old_indicator: Query<Entity, With<TargetHeightIndicator>>,
+    assets: Res<AssetServer>,
 ) {
     println!("Setting up target height indicator");
     for entity in old_indicator.iter() {
@@ -32,12 +34,12 @@ pub fn setup_target_height_indicator(
             TargetHeightIndicator,
             LevelLifecycle,
             SpriteBundle {
-                sprite: Sprite {
-                    custom_size: Some(Vec2::new(1000.0, 0.1)),
-                    color: Color::rgb(1.0, 0.0, 0.0),
-                    ..Default::default()
-                },
-                transform: Transform::from_xyz(0.0, height, 0.0),
+                transform: Transform::from_xyz(0.0, height, 5.0).with_scale(Vec3::new(
+                    ASSET_SCALE,
+                    ASSET_SCALE * 0.5,
+                    1.0,
+                )),
+                texture: assets.load("target_height_indicator.png"),
                 ..Default::default()
             },
         ));

@@ -118,7 +118,7 @@ pub const DEFAULT_LEVEL: Level = Level {
         ..default_level_base()
     }],
     enabled_effects: &DEFAULT_EFFECTS,
-    effect_likelihood: 0.05,
+    effect_likelihood: 0.5,
     intro_text: "Welcome to the game!",
     rain: None,
     friction: 0.5,

@@ -3,7 +3,8 @@ use std::mem;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::block::{CaughtBlock, FallingBlockCollision};
+use crate::block::{Block, CaughtBlock, FallingBlockCollision};
+use crate::effect::glue_texture;
 
 pub struct GluePlugin;
 
@@ -35,8 +36,11 @@ impl Default for GlueEffectPhase {
 pub struct GlueJoint;
 
 pub fn collect_glue_list_system(
+    mut commands: Commands,
     mut event_reader: EventReader<FallingBlockCollision>,
     mut query: Query<(Entity, &mut GlueEffect)>,
+    hit_query: Query<(Entity, &Block)>,
+    assets: Res<AssetServer>,
 ) {
     for event in event_reader.read() {
         let FallingBlockCollision { falling, hit } = event;
@@ -45,6 +49,26 @@ pub fn collect_glue_list_system(
             if let GlueEffectPhase::Gluing { targets } = &mut glue_effect.0 {
                 if !targets.contains(hit) {
                     targets.push(*hit);
+
+                    if let Ok((hit, block)) = hit_query.get(*hit) {
+                        commands.entity(hit).with_children(|parent| {
+                            parent.spawn(
+                                (SpriteBundle {
+                                    transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                                    texture: assets.load(glue_texture(block.block_type)),
+                                    sprite: Sprite {
+                                        custom_size: Some(Vec2::new(
+                                            block.block_type.width(),
+                                            block.block_type.height(),
+                                        )),
+                                        color: Color::rgba(1.0, 1.0, 1.0, 0.5),
+                                        ..Default::default()
+                                    },
+                                    ..Default::default()
+                                }),
+                            );
+                        });
+                    }
                 }
             }
         }
