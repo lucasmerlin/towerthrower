@@ -50,11 +50,17 @@ pub const GRAVITY: f32 = -9.81 * PIXELS_PER_METER * 2.0;
 pub const PHYSICS_DT: f32 = 1.0 / 60.0;
 
 pub const HORIZONTAL_VIEWPORT_SIZE: f32 = 45.0;
+pub const _4K_H_RESOLUTION: f32 = 3840.0;
+pub const ASSET_SCALE: f32 = HORIZONTAL_VIEWPORT_SIZE / _4K_H_RESOLUTION;
 pub const FLOOR_HEIGHT: f32 = 1.0;
 
 pub const CAR_MIN_HEIGHT: f32 = FLOOR_HEIGHT + 2.0;
 
 pub const CAR_MAX_HEIGHT: f32 = 7.0;
+
+pub const CAR_SCALE: f32 = 0.5;
+
+pub const CAR_RATE: f32 = 0.75;
 
 fn main() {
     App::new()

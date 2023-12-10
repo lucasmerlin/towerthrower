@@ -1,10 +1,11 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use rand::{thread_rng, Rng};
 
 use crate::environment::beam::BeamEvent;
 use crate::environment::car::{Car, CarCrashedEvent};
 use crate::level::LevelLifecycle;
-use crate::HORIZONTAL_VIEWPORT_SIZE;
+use crate::{ASSET_SCALE, CAR_MAX_HEIGHT, CAR_MIN_HEIGHT, CAR_SCALE, HORIZONTAL_VIEWPORT_SIZE};
 
 pub struct TowTruckPlugin;
 
@@ -30,9 +31,18 @@ pub enum TowTruckPhase {
 pub fn spawn_tow_truck_system(
     mut commands: Commands,
     mut car_crashed_events: EventReader<CarCrashedEvent>,
+    assets: Res<AssetServer>,
 ) {
     for event in car_crashed_events.read() {
-        let size = Vec2::new(8.0, 4.0);
+        let res_w = 581.0;
+        let res_h = 462.0;
+
+        let pos_y = thread_rng().gen_range(CAR_MIN_HEIGHT..CAR_MAX_HEIGHT);
+
+        let size = Vec2::new(
+            res_w * ASSET_SCALE * CAR_SCALE,
+            res_h * ASSET_SCALE * CAR_SCALE,
+        );
 
         commands.spawn((
             TowTruck {
@@ -40,7 +50,16 @@ pub fn spawn_tow_truck_system(
                 phase: TowTruckPhase::MovingToTarget,
             },
             LevelLifecycle,
-            SpatialBundle::from(Transform::from_xyz(-HORIZONTAL_VIEWPORT_SIZE, 5.0, 0.0)),
+            SpriteBundle {
+                transform: Transform::from_xyz(-HORIZONTAL_VIEWPORT_SIZE, pos_y, 0.0),
+                texture: assets.load("cars/tow_truck.png"),
+                sprite: Sprite {
+                    custom_size: Some(size),
+                    flip_x: true,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
             RigidBody::KinematicVelocityBased,
             Collider::cuboid(size.x / 2.0, size.y / 2.0),
             Velocity::linear(Vec2::new(5.0, 0.0)),
@@ -63,16 +82,12 @@ pub fn tow_car_system(
         {
             match tow_truck.phase {
                 TowTruckPhase::MovingToTarget => {
-                    let distance = tow_truck_transform
-                        .translation
-                        .distance(car_transform.translation);
-
-                    if distance < 5.0 {
+                    if tow_truck_transform.translation.x > car_transform.translation.x + 7.0 {
                         tow_truck.phase = TowTruckPhase::RaisingCar;
                         beam_event_writer.send(BeamEvent {
                             source: tow_truck_entity,
                             target: car_entity,
-                            source_offset: Vec3::new(1.5, 0.0, 0.0),
+                            source_offset: Vec3::new(-2.4, 2.3, 0.0) * CAR_SCALE,
                         });
                         commands
                             .entity(tow_truck_entity)

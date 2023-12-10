@@ -1,4 +1,5 @@
 use crate::level::LevelLifecycle;
+use crate::CAR_SCALE;
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 
@@ -68,7 +69,7 @@ pub fn update_beam_system(
                 - beam_global_transform.translation())
             .length();
 
-            sprite.custom_size = Some(Vec2::new(beam_length, 0.5));
+            sprite.custom_size = Some(Vec2::new(beam_length, 0.5 * CAR_SCALE));
         }
     }
 }

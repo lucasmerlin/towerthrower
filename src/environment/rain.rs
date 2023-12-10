@@ -154,7 +154,7 @@ pub fn darken_sprite_on_rain_system(
         .iter_mut()
         .for_each(|(mut sprite, DarkenSpriteOnRain(darken))| {
             let color = if level.rain.is_some() {
-                Color::rgb(0.7 * darken, 0.7 * darken, 0.7 * darken)
+                Color::rgb(0.7 / darken, 0.7 / darken, 0.7 / darken)
             } else {
                 Color::WHITE
             };
