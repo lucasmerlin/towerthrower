@@ -93,7 +93,7 @@ pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>, mut l
                 ),
                 RigidBody::KinematicVelocityBased,
                 Collider::cuboid(width / 2.0, height / 2.0),
-                Friction::coefficient(0.5),
+                Friction::coefficient(level.friction),
                 Velocity::linear(Vec2::new(0.0, 0.0)),
                 CollisionGroups {
                     filters: Group::ALL,

@@ -8,7 +8,7 @@ use rand::Rng;
 
 use crate::effect::EffectType;
 use crate::floor::Floor;
-use crate::level::LevelLifecycle;
+use crate::level::{Level, LevelLifecycle};
 use crate::state::LevelState;
 use crate::throw::TargetIndicator;
 
@@ -273,6 +273,7 @@ impl Block {
         block_type: BlockType,
         position: Vec2,
         assets: &mut AssetServer,
+        level: &Level,
     ) -> Entity {
         let block = Block::new(block_type);
         let width = block_type.width();
@@ -295,7 +296,7 @@ impl Block {
                 ActiveEvents::COLLISION_EVENTS,
                 //ColliderMassProperties::Mass(1.0),
                 ReadMassProperties::default(),
-                //Friction::coefficient(0.2),
+                Friction::coefficient(level.friction),
                 Aiming,
                 Velocity::linear(Vec2::new(0.0, -0.0)),
                 Sensor,

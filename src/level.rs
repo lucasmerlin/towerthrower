@@ -88,6 +88,7 @@ pub struct Level {
     pub effect_likelihood: f32,
     pub intro_text: &'static str,
     pub rain: Option<usize>,
+    pub friction: f32,
 }
 
 pub const DEFAULT_EFFECTS: [(EffectType, f32); 2] =
@@ -106,6 +107,7 @@ pub const DEFAULT_LEVEL: Level = Level {
     effect_likelihood: 0.05,
     intro_text: "Welcome to the game!",
     rain: None,
+    friction: 0.5,
 };
 
 #[derive(Debug, Clone)]
@@ -146,6 +148,7 @@ pub static LEVELS: [Level; 6] = [
             ..default_level_base()
         }],
         rain: Some(10),
+        friction: 0.2,
         ..DEFAULT_LEVEL
     },
     Level {
@@ -234,7 +237,7 @@ pub fn check_current_block_stats(
     let mut block_count = 0;
 
     for (transform, velocity) in query.iter() {
-        if velocity.linvel.length() < 1.0 {
+        if velocity.linvel.length() < 0.1 {
             block_count += 1;
             if transform.translation.y > max_height {
                 max_height = transform.translation.y;

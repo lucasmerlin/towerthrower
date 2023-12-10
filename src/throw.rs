@@ -266,6 +266,7 @@ pub fn create_aiming_block(
     mut assets: ResMut<AssetServer>,
     mut camera_movement: ResMut<CameraMovement>,
     mut launch_platform_query: Query<&Transform, With<LaunchPlatform>>,
+    level: Res<Level>,
 ) {
     if query.iter().count() == 0 {
         if let Some((block_type, effect_type)) = throw_queue.queue.pop() {
@@ -279,6 +280,7 @@ pub fn create_aiming_block(
                     launch_platform_transform.translation.y + 0.0,
                 ),
                 &mut assets,
+                &*level,
             );
         }
     }
@@ -392,7 +394,7 @@ pub fn update_aim_from_mouse_position_system(
                 direct_aim,
             );
             if shot.is_none() {
-                min_force += 0.002;
+                min_force += 0.006;
             } else {
                 break;
             }
