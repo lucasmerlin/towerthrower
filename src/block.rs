@@ -363,7 +363,7 @@ pub fn block_stable_system(
     mut event: EventWriter<CaughtBlock>,
 ) {
     for (entity, velocity) in query.iter_mut() {
-        if velocity.linvel.length() < 1.0 && velocity.angvel.abs() < 0.1 {
+        if velocity.linvel.length() < 0.1 && velocity.angvel.abs() < 0.1 {
             event.send(CaughtBlock { entity });
             commands.entity(entity).remove::<Falling>();
         }

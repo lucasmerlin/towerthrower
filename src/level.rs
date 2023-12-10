@@ -122,7 +122,7 @@ pub struct NextLevel(pub Option<usize>);
 #[derive(Component, Debug, Clone)]
 pub struct LevelLifecycle;
 
-pub static LEVELS: [Level; 6] = [
+pub static LEVELS: [Level; 8] = [
     Level {
         level: 0,
         intro_text: "Test Level",
@@ -131,6 +131,7 @@ pub static LEVELS: [Level; 6] = [
         max_blocks: None,
         bases: &[LevelBase {
             base_type: BaseType::T9,
+            rotation: 0.1,
             ..default_level_base()
         }],
         ..DEFAULT_LEVEL
@@ -147,8 +148,6 @@ pub static LEVELS: [Level; 6] = [
             base_type: BaseType::T9,
             ..default_level_base()
         }],
-        rain: Some(10),
-        friction: 0.2,
         ..DEFAULT_LEVEL
     },
     Level {
@@ -186,24 +185,53 @@ pub static LEVELS: [Level; 6] = [
     },
     Level {
         level: 5,
+        intro_text: "We're going to build the next one on two existing buildings, try combining them so you have a wider fundament.",
         goal: LevelGoal::ReachHeight(35.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(25),
         bases: &[
             LevelBase {
                 base_type: BaseType::T2,
-                translation: Vec2::new(80.0, 0.0),
+                translation: Vec2::new(4.0, 10.0),
                 ..default_level_base()
             },
             LevelBase {
                 base_type: BaseType::T2,
-                translation: Vec2::new(-80.0, 0.0),
+                translation: Vec2::new(-4.0, 10.0),
                 ..default_level_base()
             },
         ],
         enabled_effects: &[(EffectType::Glue, 1.0)],
         ..DEFAULT_LEVEL
     },
+    Level {
+        level: 6,
+        intro_text: "Oops, this one has a tilted fundament. Be careful!",
+        goal: LevelGoal::ReachHeight(35.0),
+        time_limit: Some(Duration::from_secs(60)),
+        max_blocks: Some(25),
+        bases: &[
+            LevelBase {
+                base_type: BaseType::T4,
+                rotation: -0.1,
+                ..default_level_base()
+            },
+        ],
+        enabled_effects: &[(EffectType::Glue, 1.0)],
+        ..DEFAULT_LEVEL
+    },
+    Level {
+        level: 7,
+        intro_text: "Looks like it's starting to rain. The rain will make the blocks slippery, so be careful!",
+        goal: LevelGoal::ReachHeight(20.0),
+        bases: &[LevelBase {
+            base_type: BaseType::T4,
+            ..default_level_base()
+        }],
+        rain: Some(10),
+        friction: 0.2,
+        ..DEFAULT_LEVEL
+    }
 ];
 
 pub fn load_level_event(
