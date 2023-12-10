@@ -1,3 +1,4 @@
+use crate::{ASSET_SCALE, CAR_SCALE, FLOOR_HEIGHT, HORIZONTAL_VIEWPORT_SIZE};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -23,14 +24,20 @@ impl Plugin for DebrisCleanerPlugin {
 pub struct DebrisCleaner;
 
 pub const DEBRIS_CLEANER_THRESHOLD: usize = 30;
-pub const DEBRIS_CLEANER_RANGE: f32 = 300.0;
-pub const DEBRIS_CLEANER_FORCE: f32 = 20.0;
+pub const DEBRIS_CLEANER_RANGE: f32 = 6.0;
+pub const DEBRIS_CLEANER_FORCE: f32 = 2.0;
 
 pub fn spawn_debris_cleaner(
     mut commands: Commands,
     mut debris_query: Query<Entity, With<Debris>>,
     mut debris_cleaner_query: Query<Entity, With<DebrisCleaner>>,
+    mut assets: ResMut<AssetServer>,
 ) {
+    let res_w = 1395.0;
+    let res_h = 671.0;
+
+    let size = Vec2::new(res_w, res_h) * ASSET_SCALE * CAR_SCALE * 0.8;
+
     let count = debris_query.iter_mut().count();
 
     let mut debris_cleaner_count = debris_cleaner_query.iter_mut().count();
@@ -39,13 +46,20 @@ pub fn spawn_debris_cleaner(
         commands.spawn((
             DebrisCleaner,
             LevelLifecycle,
-            SpatialBundle::from(
-                Transform::from_xyz(1000.0, -50.0, 0.0).with_rotation(Quat::from_rotation_z(0.0)),
-            ),
+            SpriteBundle {
+                transform: Transform::from_xyz(HORIZONTAL_VIEWPORT_SIZE, FLOOR_HEIGHT + 1.0, 0.0)
+                    .with_rotation(Quat::from_rotation_z(0.0)),
+                texture: assets.load("cars/garbage_collector.png"),
+                sprite: Sprite {
+                    custom_size: Some(size),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
             RigidBody::KinematicVelocityBased,
-            Collider::cuboid(100.0, 50.0),
+            Collider::cuboid(size.x / 2.0, size.y / 2.0),
             Friction::coefficient(0.5),
-            Velocity::linear(Vec2::new(-40.0, 0.0)),
+            Velocity::linear(Vec2::new(-4.0, 0.0)),
             ActiveEvents::COLLISION_EVENTS,
             Sensor,
         ));
