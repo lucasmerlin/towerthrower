@@ -1,10 +1,14 @@
+use crate::block::BLOCK_SIZE;
 use bevy::prelude::*;
+use bevy::sprite::Anchor;
 use bevy_rapier2d::geometry::Collider;
+use bevy_rapier2d::plugin::systems::apply_scale;
 use bevy_rapier2d::prelude::{Friction, RigidBody, Velocity};
 
 use crate::cursor_system::CursorCoords;
 use crate::level::{Level, LevelLifecycle};
 use crate::state::LevelState;
+use crate::HORIZONTAL_VIEWPORT_SIZE;
 
 pub struct BasePlugin;
 
@@ -14,21 +18,73 @@ impl Plugin for BasePlugin {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum BaseType {
+    T2,
+    T3,
+    T4,
+    T7,
+    T9,
+}
+
+impl BaseType {
+    pub fn name(&self) -> &str {
+        match self {
+            BaseType::T2 => "t-2",
+            BaseType::T3 => "t-3",
+            BaseType::T4 => "t-4",
+            BaseType::T7 => "t-7",
+            BaseType::T9 => "t-9",
+        }
+    }
+
+    pub fn width(&self) -> f32 {
+        let image_width = self.image_width();
+        let _4k_width = 3840.0;
+        let scale = HORIZONTAL_VIEWPORT_SIZE / _4k_width;
+        image_width * scale
+    }
+
+    pub fn image_width(&self) -> f32 {
+        match self {
+            BaseType::T2 => 466.0,
+            BaseType::T3 => 636.0,
+            BaseType::T4 => 762.0,
+            BaseType::T7 => 1324.0,
+            BaseType::T9 => 1652.0,
+        }
+    }
+
+    pub fn asset(&self) -> String {
+        format!("bases/{}.png", self.name())
+    }
+}
+
 #[derive(Component)]
 pub struct Base;
 
 pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>, mut level: Res<Level>) {
-    let height = 20.0;
-    let width = level.bases[0].width;
+    let height = BLOCK_SIZE;
+
+    // Since the spot in the bg image is not centered, we need to offset the base a bit
+    let additional_transform = Vec2::new(0.5, 0.0);
 
     for base in level.bases {
+        let width = base.base_type.width();
+
+        let image_width = base.base_type.image_width();
+
+        let image_scale = width / image_width;
+
+        let texture = assets.load(base.base_type.asset());
+
         commands
             .spawn((
                 Base,
                 LevelLifecycle,
                 SpatialBundle::from(
                     Transform::from_translation(Vec3::from((
-                        base.translation + Vec2::new(0.0, height / 2.0),
+                        base.translation + additional_transform + Vec2::new(0.0, height / 2.0),
                         0.0,
                     )))
                     .with_rotation(Quat::from_rotation_z(base.rotation)),
@@ -41,8 +97,13 @@ pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>, mut l
             .with_children(|parent| {
                 parent.spawn(SpriteBundle {
                     // transform: Transform::from_xyz(0.0, 0.0, 0.0),
-                    texture: assets.load("fortress.png"),
-                    transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(0.1)),
+                    texture,
+                    transform: Transform::from_xyz(0.0, height / 2.0, -7.0)
+                        .with_scale(Vec3::splat(image_scale)),
+                    sprite: Sprite {
+                        anchor: Anchor::TopCenter,
+                        ..Default::default()
+                    },
                     ..Default::default()
                 });
             });

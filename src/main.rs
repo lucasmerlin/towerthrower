@@ -43,17 +43,17 @@ mod ui;
 #[derive(Component)]
 pub struct MainCamera;
 
-pub const PIXELS_PER_METER: f32 = 100.0;
-pub const GRAVITY: f32 = -9.81 * PIXELS_PER_METER;
+pub const PIXELS_PER_METER: f32 = 1.0;
+pub const GRAVITY: f32 = -9.81 * PIXELS_PER_METER * 2.0;
 
 pub const PHYSICS_DT: f32 = 1.0 / 60.0;
 
-pub const VERTICAL_VIEWPORT_SIZE: f32 = 400.0;
-pub const FLOOR_HEIGHT: f32 = -VERTICAL_VIEWPORT_SIZE / 2.0 + 10.0;
+pub const HORIZONTAL_VIEWPORT_SIZE: f32 = 45.0;
+pub const FLOOR_HEIGHT: f32 = 1.0;
 
-pub const CAR_MIN_HEIGHT: f32 = FLOOR_HEIGHT + 20.0;
+pub const CAR_MIN_HEIGHT: f32 = FLOOR_HEIGHT + 2.0;
 
-pub const CAR_MAX_HEIGHT: f32 = FLOOR_HEIGHT / 2.0;
+pub const CAR_MAX_HEIGHT: f32 = 7.0;
 
 fn main() {
     App::new()
@@ -72,7 +72,11 @@ fn main() {
             }),
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER)
                 .in_fixed_schedule(),
-            RapierDebugRenderPlugin::default(),
+            {
+                let mut debug = RapierDebugRenderPlugin::default();
+                debug.style.rigid_body_axes_length = 0.3;
+                debug
+            },
             EguiPlugin,
             // Game plugins
             (
@@ -122,7 +126,7 @@ pub fn setup_graphics(mut commands: Commands, mut assets: ResMut<AssetServer>) {
             projection: OrthographicProjection {
                 far: 1000.0,
                 near: -1000.0,
-                scaling_mode: ScalingMode::FixedVertical(VERTICAL_VIEWPORT_SIZE),
+                scaling_mode: ScalingMode::FixedHorizontal(HORIZONTAL_VIEWPORT_SIZE),
                 ..OrthographicProjection::default()
             },
             ..default()

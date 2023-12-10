@@ -1,5 +1,6 @@
-use crate::block::Falling;
-use crate::MainCamera;
+use crate::block::{Block, Falling};
+use crate::launch_platform::LaunchPlatform;
+use crate::{MainCamera, HORIZONTAL_VIEWPORT_SIZE};
 use bevy::prelude::*;
 
 #[derive(Resource)]
@@ -17,24 +18,28 @@ impl Default for CameraMovement {
 // Camera is only moving up, not down
 pub fn camera_movement_system(
     mut camera_movement: ResMut<CameraMovement>,
-    mut camera_query: Query<&mut Transform, With<MainCamera>>,
-    mut query: Query<(
+    mut camera_query: Query<(&mut Transform, &GlobalTransform, &Camera), With<MainCamera>>,
+    mut query: Query<
         &Transform,
-        &crate::block::Block,
-        Without<MainCamera>,
-        Without<Falling>,
-    )>,
+        (
+            Without<MainCamera>,
+            Without<Falling>,
+            Or<(With<Block>, With<LaunchPlatform>)>,
+        ),
+    >,
 ) {
-    let mut highest = 100.0;
-    for (transform, block, ..) in query.iter_mut() {
+    let start_move_at = 20.0;
+
+    let mut highest = start_move_at;
+    for transform in query.iter_mut() {
         if transform.translation.y > highest {
             highest = transform.translation.y;
         }
     }
 
-    let target_height = highest - 100.0;
+    let target_height = highest - start_move_at;
 
-    let increase = 1.0;
+    let increase = 0.1;
 
     if target_height > camera_movement.height {
         camera_movement.height += increase;
@@ -42,8 +47,12 @@ pub fn camera_movement_system(
         camera_movement.height -= increase;
     }
 
-    for mut transform in camera_query.iter_mut() {
-        transform.translation.y = camera_movement.height;
+    for (mut transform, global_transform, camera) in camera_query.iter_mut() {
+        let viewport = camera.logical_viewport_size().unwrap();
+
+        let scene_height = HORIZONTAL_VIEWPORT_SIZE * viewport.y / viewport.x;
+
+        transform.translation.y = camera_movement.height + scene_height / 2.0;
         // camera should slowly zoom out as we get higher
         //transform.scale = Vec3::new(1.0, 1.0, 1.0) * (1.0 + camera_movement.height / 1000.0);
     }

@@ -21,7 +21,7 @@ pub struct MagneticEffect {
 impl Default for MagneticEffect {
     fn default() -> Self {
         Self {
-            range: 200.0,
+            range: 10.0,
             force: 2.0,
         }
     }

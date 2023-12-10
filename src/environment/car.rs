@@ -5,7 +5,7 @@ use rand::{random, thread_rng, Rng};
 use crate::block::{DestroyBlockOnContact, BLOCK_COLLISION_GROUP};
 use crate::floor::FLOOR_COLLISION_GROUP;
 use crate::level::{LevelLifecycle, UpdateLevelStats};
-use crate::{CAR_MAX_HEIGHT, CAR_MIN_HEIGHT};
+use crate::{CAR_MAX_HEIGHT, CAR_MIN_HEIGHT, HORIZONTAL_VIEWPORT_SIZE};
 
 pub struct CarPlugin;
 
@@ -64,18 +64,18 @@ pub fn spawn_car_system(
     car_spawner.spawn_timer.tick(time.delta());
     if car_spawner.spawn_timer.just_finished() {
         let car_size = Vec2::new(
-            thread_rng().gen_range(50.0..80.0),
-            thread_rng().gen_range(20.0..30.0),
+            thread_rng().gen_range(3.0..5.0),
+            thread_rng().gen_range(1.5..2.0),
         );
 
         let direction = if random() { 1.0 } else { -1.0 };
 
         let car_position = Vec2::new(
-            direction * 1000.0,
+            direction * HORIZONTAL_VIEWPORT_SIZE,
             thread_rng().gen_range(CAR_MIN_HEIGHT..CAR_MAX_HEIGHT),
         );
 
-        let car_velocity = Vec2::new(direction * -thread_rng().gen_range(70.0..100.0), 0.0);
+        let car_velocity = Vec2::new(direction * -thread_rng().gen_range(7.0..10.0), 0.0);
 
         commands.spawn((
             Car::default(),

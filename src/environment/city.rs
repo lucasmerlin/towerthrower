@@ -1,8 +1,9 @@
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 
+use crate::camera_movement::CameraMovement;
 use crate::state::LevelState;
-use crate::{MainCamera, FLOOR_HEIGHT, VERTICAL_VIEWPORT_SIZE};
+use crate::{MainCamera, FLOOR_HEIGHT, HORIZONTAL_VIEWPORT_SIZE};
 
 pub struct CityPlugin;
 
@@ -79,7 +80,7 @@ pub fn setup_city(mut commands: Commands, assets: Res<AssetServer>) {
     ));
     commands.spawn((
         AutoWidth {
-            aspect_ratio,
+            aspect_ratio: 1465.0 / 3840.0,
             open_top: true,
             parallax: -0.2,
         },
@@ -87,7 +88,7 @@ pub fn setup_city(mut commands: Commands, assets: Res<AssetServer>) {
             transform: Transform::from_xyz(0.0, 0.0, -20.0),
             texture: assets.load("parallax/02_middle.png"),
             sprite: Sprite {
-                custom_size: Some(Vec2::new(1.0, aspect_ratio)),
+                custom_size: Some(Vec2::new(1.0, 1465.0 / 3840.0)),
                 anchor: Anchor::BottomCenter,
                 ..Default::default()
             },
@@ -96,7 +97,7 @@ pub fn setup_city(mut commands: Commands, assets: Res<AssetServer>) {
     ));
     commands.spawn((
         AutoWidth {
-            aspect_ratio,
+            aspect_ratio: 1810.0 / 3840.0,
             open_top: true,
             parallax: -0.4,
         },
@@ -104,7 +105,7 @@ pub fn setup_city(mut commands: Commands, assets: Res<AssetServer>) {
             transform: Transform::from_xyz(0.0, 0.0, -30.0),
             texture: assets.load("parallax/01_far_city.png"),
             sprite: Sprite {
-                custom_size: Some(Vec2::new(1.0, aspect_ratio)),
+                custom_size: Some(Vec2::new(1.0, 1810.0 / 3840.0)),
                 anchor: Anchor::BottomCenter,
                 ..Default::default()
             },
@@ -134,6 +135,7 @@ pub fn setup_city(mut commands: Commands, assets: Res<AssetServer>) {
 pub fn update_auto_width(
     mut query: Query<(&AutoWidth, &mut Transform)>,
     transform: Query<(&GlobalTransform, &Camera), With<MainCamera>>,
+    movement: Res<CameraMovement>,
 ) {
     let (camera_transform, camera) = transform.single();
     let viewport = camera.logical_viewport_size().unwrap();
@@ -158,8 +160,7 @@ pub fn update_auto_width(
     for (auto_width, mut transform) in &mut query.iter_mut() {
         // the images should be scaled so they always fill the screen
 
-        transform.translation.y =
-            -VERTICAL_VIEWPORT_SIZE / 2.0 - camera_transform.translation().y * auto_width.parallax;
+        transform.translation.y = -movement.height * auto_width.parallax;
 
         if world_aspect_ratio > auto_width.aspect_ratio || auto_width.open_top {
             // the world is wider than the image

@@ -62,7 +62,7 @@ impl EffectType {
             parent.spawn(SpriteBundle {
                 texture: assets.load(texture),
                 sprite: Sprite {
-                    custom_size: Some(Vec2::new(24.0, 24.0)),
+                    custom_size: Some(Vec2::new(1.0, 1.0)),
                     ..Default::default()
                 },
                 ..Default::default()

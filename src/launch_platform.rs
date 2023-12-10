@@ -25,7 +25,7 @@ pub fn spawn_launch_platform_system(mut commands: Commands, mut assets: ResMut<A
         .spawn((
             LaunchPlatform,
             LevelLifecycle,
-            SpatialBundle::from(Transform::from_translation(Vec3::new(150.0, 20.0, 0.0))),
+            SpatialBundle::from(Transform::from_translation(Vec3::new(10.0, 10.0, 0.0))),
             RigidBody::KinematicVelocityBased,
             Velocity::zero(),
             //collider,
@@ -34,7 +34,7 @@ pub fn spawn_launch_platform_system(mut commands: Commands, mut assets: ResMut<A
             parent.spawn(SpriteBundle {
                 texture: assets.load("rocket.png"),
                 sprite: Sprite {
-                    custom_size: Some(Vec2::new(20.0, 20.0)),
+                    custom_size: Some(Vec2::new(1.0, 1.0)),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -47,9 +47,9 @@ pub fn launch_platform_control_system(
     mut query: Query<&mut Velocity, With<LaunchPlatform>>,
 ) {
     for mut velocity in query.iter_mut() {
-        let max_velocity = 250.0;
-        let increment = 5.0;
-        let decrement = 5.0;
+        let max_velocity = 25.0;
+        let increment = 0.5;
+        let decrement = 0.5;
 
         /// WASD for launch platform
         if key_code.pressed(KeyCode::A) {

@@ -40,7 +40,7 @@ pub fn spawn_beam_system(mut commands: Commands, mut beam_events: EventReader<Be
                 SpriteBundle {
                     sprite: Sprite {
                         color: Color::rgba_u8(255, 255, 255, 200),
-                        custom_size: Some(Vec2::new(10.0, 10.0)),
+                        custom_size: Some(Vec2::new(0.0, 0.0)),
                         anchor: Anchor::CenterLeft,
                         ..Default::default()
                     },
@@ -68,7 +68,7 @@ pub fn update_beam_system(
                 - beam_global_transform.translation())
             .length();
 
-            sprite.custom_size = Some(Vec2::new(beam_length, 10.0));
+            sprite.custom_size = Some(Vec2::new(beam_length, 0.5));
         }
     }
 }

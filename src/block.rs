@@ -50,7 +50,7 @@ pub enum BlockType {
     L,
 }
 
-pub const BLOCK_SIZE: f32 = 20.0;
+pub const BLOCK_SIZE: f32 = 1.0;
 
 pub const BLOCKS: [BlockType; 7] = [
     BlockType::I,

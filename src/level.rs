@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use crate::base::BaseType;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
 
@@ -50,7 +51,7 @@ pub enum UpdateLevelStats {
 
 #[derive(Debug, Clone)]
 pub struct LevelBase {
-    pub width: f32,
+    pub base_type: BaseType,
     pub translation: Vec2,
     pub rotation: f32,
 }
@@ -70,8 +71,8 @@ pub struct LaunchPlatform {
 
 const fn default_level_base() -> LevelBase {
     LevelBase {
-        width: 100.0,
-        translation: Vec2::ZERO,
+        base_type: BaseType::T7,
+        translation: Vec2::new(0.0, 10.0),
         rotation: 0.0,
     }
 }
@@ -93,11 +94,11 @@ pub const DEFAULT_EFFECTS: [(EffectType, f32); 2] =
 
 pub const DEFAULT_LEVEL: Level = Level {
     level: 0,
-    goal: LevelGoal::ReachHeight(200.0),
+    goal: LevelGoal::ReachHeight(20.0),
     time_limit: Some(Duration::from_secs(60)),
     max_blocks: None,
     bases: &[LevelBase {
-        width: 160.0,
+        base_type: BaseType::T9,
         ..default_level_base()
     }],
     enabled_effects: &DEFAULT_EFFECTS,
@@ -121,11 +122,11 @@ pub static LEVELS: [Level; 6] = [
     Level {
         level: 0,
         intro_text: "Test Level",
-        goal: LevelGoal::ReachHeight(200.0),
+        goal: LevelGoal::ReachHeight(15.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: None,
         bases: &[LevelBase {
-            width: 10000.0,
+            base_type: BaseType::T9,
             ..default_level_base()
         }],
         ..DEFAULT_LEVEL
@@ -135,11 +136,11 @@ pub static LEVELS: [Level; 6] = [
         intro_text: "Welcome to your first day at Big Bad Buildings, Inc. Your job is to operate the Tower Thrower 3000, a state-of-the-art machine that constructs buildings by throwing blocks.\
         For your first building, reach a target height of 200m.\
         ",
-        goal: LevelGoal::ReachHeight(200.0),
+        goal: LevelGoal::ReachHeight(20.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: None,
         bases: &[LevelBase {
-            width: 160.0,
+            base_type: BaseType::T9,
             ..default_level_base()
         }],
         ..DEFAULT_LEVEL
@@ -150,18 +151,18 @@ pub static LEVELS: [Level; 6] = [
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(13),
         bases: &[LevelBase {
-            width: 80.0,
+            base_type: BaseType::T4,
             ..default_level_base()
         }],
         ..DEFAULT_LEVEL
     },
     Level {
         level: 3,
-        goal: LevelGoal::ReachHeight(200.0),
+        goal: LevelGoal::ReachHeight(20.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(30),
         bases: &[LevelBase {
-            width: 120.0,
+            base_type: BaseType::T4,
             ..default_level_base()
         }],
         ..DEFAULT_LEVEL
@@ -172,24 +173,24 @@ pub static LEVELS: [Level; 6] = [
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(25),
         bases: &[LevelBase {
-            width: 100.0,
+            base_type: BaseType::T4,
             ..default_level_base()
         }],
         ..DEFAULT_LEVEL
     },
     Level {
         level: 5,
-        goal: LevelGoal::ReachHeight(350.0),
+        goal: LevelGoal::ReachHeight(35.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(25),
         bases: &[
             LevelBase {
-                width: 60.0,
+                base_type: BaseType::T2,
                 translation: Vec2::new(80.0, 0.0),
                 ..default_level_base()
             },
             LevelBase {
-                width: 60.0,
+                base_type: BaseType::T2,
                 translation: Vec2::new(-80.0, 0.0),
                 ..default_level_base()
             },

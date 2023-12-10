@@ -232,7 +232,7 @@ pub fn simulate_throw_system(
                     transform: step,
                     texture: assets.load("aim.png"),
                     sprite: Sprite {
-                        custom_size: Some(Vec2::new(2.0, 2.0)),
+                        custom_size: Some(Vec2::new(0.2, 0.2)),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -247,7 +247,7 @@ pub fn simulate_throw_system(
                 transform,
                 texture: assets.load("aim.png"),
                 sprite: Sprite {
-                    custom_size: Some(Vec2::new(10.0, 10.0)),
+                    custom_size: Some(Vec2::new(1.0, 1.0)),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -276,7 +276,7 @@ pub fn create_aiming_block(
                 block_type,
                 Vec2::new(
                     launch_platform_transform.translation.x,
-                    launch_platform_transform.translation.y + 35.0,
+                    launch_platform_transform.translation.y + 0.0,
                 ),
                 &mut assets,
             );
@@ -291,7 +291,7 @@ pub fn update_aiming_block_position(
     let launch_platform_transform = launch_platform_query.single();
     for (entity, mut transform) in query.iter_mut() {
         transform.translation.x = launch_platform_transform.translation.x;
-        transform.translation.y = launch_platform_transform.translation.y + 35.0;
+        transform.translation.y = launch_platform_transform.translation.y + 0.0;
     }
 }
 
@@ -392,7 +392,7 @@ pub fn update_aim_from_mouse_position_system(
                 direct_aim,
             );
             if shot.is_none() {
-                min_force += 0.1;
+                min_force += 0.002;
             } else {
                 break;
             }

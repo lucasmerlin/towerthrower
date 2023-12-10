@@ -4,6 +4,7 @@ use bevy_rapier2d::prelude::*;
 use crate::environment::beam::BeamEvent;
 use crate::environment::car::{Car, CarCrashedEvent};
 use crate::level::LevelLifecycle;
+use crate::HORIZONTAL_VIEWPORT_SIZE;
 
 pub struct TowTruckPlugin;
 
@@ -31,7 +32,7 @@ pub fn spawn_tow_truck_system(
     mut car_crashed_events: EventReader<CarCrashedEvent>,
 ) {
     for event in car_crashed_events.read() {
-        let size = Vec2::new(60.0, 30.0);
+        let size = Vec2::new(8.0, 4.0);
 
         commands.spawn((
             TowTruck {
@@ -39,10 +40,10 @@ pub fn spawn_tow_truck_system(
                 phase: TowTruckPhase::MovingToTarget,
             },
             LevelLifecycle,
-            SpatialBundle::from(Transform::from_xyz(-1000.0, 0.0, 0.0)),
+            SpatialBundle::from(Transform::from_xyz(-HORIZONTAL_VIEWPORT_SIZE, 5.0, 0.0)),
             RigidBody::KinematicVelocityBased,
             Collider::cuboid(size.x / 2.0, size.y / 2.0),
-            Velocity::linear(Vec2::new(50.0, 0.0)),
+            Velocity::linear(Vec2::new(5.0, 0.0)),
             Sensor,
         ));
     }
@@ -66,12 +67,12 @@ pub fn tow_car_system(
                         .translation
                         .distance(car_transform.translation);
 
-                    if distance < 100.0 {
+                    if distance < 5.0 {
                         tow_truck.phase = TowTruckPhase::RaisingCar;
                         beam_event_writer.send(BeamEvent {
                             source: tow_truck_entity,
                             target: car_entity,
-                            source_offset: Vec3::new(15.0, 0.0, 0.0),
+                            source_offset: Vec3::new(1.5, 0.0, 0.0),
                         });
                         commands
                             .entity(tow_truck_entity)
@@ -79,7 +80,7 @@ pub fn tow_car_system(
 
                         commands.entity(car_entity).insert((
                             RigidBody::KinematicVelocityBased,
-                            Velocity::linear(Vec2::new(0.5, 15.0)),
+                            Velocity::linear(Vec2::new(0.05, 1.5)),
                         ));
                         tow_truck_velocity.linvel = Vec2::ZERO;
 
@@ -88,14 +89,14 @@ pub fn tow_car_system(
                     }
                 }
                 TowTruckPhase::RaisingCar => {
-                    if car_transform.translation.y > -30.0 {
+                    if car_transform.translation.y > 1.6 {
                         tow_truck.phase = TowTruckPhase::TowingTarget;
                         commands
                             .entity(car_entity)
                             .insert((RigidBody::Fixed, Velocity::linear(Vec2::new(0.0, 0.0))));
                         car_velocity.linvel = Vec2::ZERO;
 
-                        tow_truck_velocity.linvel = Vec2::new(50.0, 0.0);
+                        tow_truck_velocity.linvel = Vec2::new(5.0, 0.0);
                     }
                 }
                 TowTruckPhase::TowingTarget => {}

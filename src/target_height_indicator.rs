@@ -33,7 +33,7 @@ pub fn setup_target_height_indicator(
             LevelLifecycle,
             SpriteBundle {
                 sprite: Sprite {
-                    custom_size: Some(Vec2::new(10000.0, 1.0)),
+                    custom_size: Some(Vec2::new(1000.0, 0.1)),
                     color: Color::rgb(1.0, 0.0, 0.0),
                     ..Default::default()
                 },
