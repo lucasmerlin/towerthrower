@@ -59,7 +59,6 @@ pub struct LevelBase {
 #[derive(Debug, Clone)]
 pub enum LaunchPlatformKind {
     Static,
-    Vertical,
     Free,
 }
 
@@ -67,6 +66,20 @@ pub enum LaunchPlatformKind {
 pub struct LaunchPlatform {
     pub translation: Vec2,
     pub kind: LaunchPlatformKind,
+}
+
+const fn static_launch_platform() -> LaunchPlatform {
+    LaunchPlatform {
+        translation: Vec2::new(15.3, 10.8),
+        kind: LaunchPlatformKind::Static,
+    }
+}
+
+const fn free_launch_platform() -> LaunchPlatform {
+    LaunchPlatform {
+        translation: Vec2::new(15.3, 10.8),
+        kind: LaunchPlatformKind::Free,
+    }
 }
 
 const fn default_level_base() -> LevelBase {
@@ -89,6 +102,7 @@ pub struct Level {
     pub intro_text: &'static str,
     pub rain: Option<usize>,
     pub friction: f32,
+    pub launch_platform: LaunchPlatform,
 }
 
 pub const DEFAULT_EFFECTS: [(EffectType, f32); 2] =
@@ -108,6 +122,7 @@ pub const DEFAULT_LEVEL: Level = Level {
     intro_text: "Welcome to the game!",
     rain: None,
     friction: 0.5,
+    launch_platform: static_launch_platform(),
 };
 
 #[derive(Debug, Clone)]
@@ -134,6 +149,7 @@ pub static LEVELS: [Level; 8] = [
             rotation: 0.1,
             ..default_level_base()
         }],
+        launch_platform: static_launch_platform(),
         ..DEFAULT_LEVEL
     },
     Level {
@@ -148,6 +164,7 @@ pub static LEVELS: [Level; 8] = [
             base_type: BaseType::T9,
             ..default_level_base()
         }],
+        launch_platform: free_launch_platform(),
         ..DEFAULT_LEVEL
     },
     Level {

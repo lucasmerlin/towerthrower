@@ -14,7 +14,7 @@ use crate::effect::EffectType;
 use crate::launch_platform::LaunchPlatform;
 use crate::level::{Level, LevelStats, UpdateLevelStats};
 use crate::state::LevelState;
-use crate::{GRAVITY, PHYSICS_DT};
+use crate::{BARREL_LENGTH, GRAVITY, PHYSICS_DT};
 
 pub struct ThrowPlugin;
 
@@ -49,6 +49,7 @@ impl Plugin for ThrowPlugin {
 #[derive(Resource, Debug)]
 pub struct Aim {
     pub direction: Vec2,
+    pub barrel_direction: Option<Vec2>,
     pub force_factor: f32,
     pub force: f32,
     pub rotation: f32,
@@ -56,6 +57,7 @@ pub struct Aim {
 impl Default for Aim {
     fn default() -> Self {
         Self {
+            barrel_direction: None,
             direction: Vec2::from_angle(PI / 1.5),
             force_factor: 0.0,
             force: 500.0,
@@ -105,7 +107,7 @@ pub fn remove_simulation_system(
 
 pub fn simulate_throw_system(
     mut commands: Commands,
-    aim: Res<Aim>,
+    mut aim: ResMut<Aim>,
     aimed_block: Query<
         (Entity, &Collider, &Transform, &ReadMassProperties),
         (With<Block>, With<Aiming>),
@@ -150,6 +152,8 @@ pub fn simulate_throw_system(
         let mut hit = false;
 
         let mut steps = vec![];
+
+        aim.barrel_direction = None;
 
         while t < 2.0 {
             let angle = Vec2::Y.angle_between((transform.rotation * Vec3::Y).xy());
@@ -214,6 +218,13 @@ pub fn simulate_throw_system(
             velocity.linvel += acceleration * dt;
             transform.rotation = transform.rotation * Quat::from_rotation_z(velocity.angvel * dt);
             transform.translation += Vec3::from((velocity.linvel * dt, 0.0));
+
+            let distance_from_origin = aimed_transform.translation.distance(transform.translation);
+            if distance_from_origin > BARREL_LENGTH && aim.barrel_direction.is_none() {
+                aim.barrel_direction = Some(
+                    (transform.translation.xy() - aimed_transform.translation.xy()).normalize(),
+                );
+            }
 
             steps.push(transform.clone());
 

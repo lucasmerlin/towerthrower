@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
 use bevy::window::WindowResolution;
 use bevy_egui::EguiPlugin;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
 
 use crate::base::BasePlugin;
@@ -62,6 +63,8 @@ pub const CAR_SCALE: f32 = 0.5;
 
 pub const CAR_RATE: f32 = 0.75;
 
+pub const BARREL_LENGTH: f32 = 3.5;
+
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb_u8(250, 225, 124)))
@@ -86,6 +89,7 @@ fn main() {
                 debug
             },
             EguiPlugin,
+            WorldInspectorPlugin::new(),
             // Game plugins
             (
                 BlockPlugin,
