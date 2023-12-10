@@ -76,7 +76,7 @@ fn main() {
             {
                 let mut debug = RapierDebugRenderPlugin::default();
                 debug.style.rigid_body_axes_length = 0.3;
-                debug.enabled = false;
+                //debug.enabled = false;
                 debug
             },
             EguiPlugin,
@@ -164,11 +164,11 @@ pub fn setup_physics(
 
 pub fn despawn_lost_entities(mut commands: Commands, mut query: Query<(Entity, &Transform)>) {
     for (entity, transform) in query.iter_mut() {
-        if transform.translation.x < -2000.0
-            || transform.translation.x > 2000.0
-            || transform.translation.y < -2000.0
+        if transform.translation.x < -HORIZONTAL_VIEWPORT_SIZE
+            || transform.translation.x > HORIZONTAL_VIEWPORT_SIZE
+            || transform.translation.y < -10.0
         {
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
 }

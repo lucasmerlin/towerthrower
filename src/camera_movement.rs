@@ -53,7 +53,5 @@ pub fn camera_movement_system(
         let scene_height = HORIZONTAL_VIEWPORT_SIZE * viewport.y / viewport.x;
 
         transform.translation.y = camera_movement.height + scene_height / 2.0;
-        // camera should slowly zoom out as we get higher
-        //transform.scale = Vec3::new(1.0, 1.0, 1.0) * (1.0 + camera_movement.height / 1000.0);
     }
 }

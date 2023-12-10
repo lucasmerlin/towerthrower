@@ -1,8 +1,8 @@
-use crate::block::DestroyBlockOnContact;
+use crate::block::{DestroyBlockOnContact, BLOCK_SIZE};
 use crate::consts::FLOOR_COLLISION_GROUP;
 use crate::level::LevelLifecycle;
 use crate::state::LevelState;
-use crate::FLOOR_HEIGHT;
+use crate::{FLOOR_HEIGHT, HORIZONTAL_VIEWPORT_SIZE};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -18,8 +18,8 @@ impl Plugin for FloorPlugin {
 pub struct Floor;
 
 pub fn setup_floor(mut commands: Commands) {
-    let width = 10000.0;
-    let height = 1000.0;
+    let width = HORIZONTAL_VIEWPORT_SIZE * 2.0;
+    let height = BLOCK_SIZE;
 
     let collider = Collider::cuboid(width / 2.0, height / 2.0);
 
