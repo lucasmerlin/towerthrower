@@ -5,6 +5,7 @@ mod car;
 pub mod city;
 mod debris_cleaner;
 pub mod fees;
+mod music;
 pub mod rain;
 mod tow_truck;
 
@@ -20,6 +21,7 @@ impl Plugin for EnvironmentPlugin {
             fees::FeesPlugin,
             city::CityPlugin,
             rain::RainPlugin,
+            music::MusicPlugin,
         ));
     }
 }

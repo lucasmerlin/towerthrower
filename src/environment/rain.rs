@@ -3,13 +3,15 @@ use bevy_rapier2d::prelude::*;
 use rand::random;
 
 use crate::consts::{foreground_collision_groups, RAIN_COLLISION_GROUP};
-use crate::level::Level;
+use crate::level::{Level, LevelLifecycle};
+use crate::state::LevelState;
 use crate::HORIZONTAL_VIEWPORT_SIZE;
 
 pub struct RainPlugin;
 
 impl Plugin for RainPlugin {
     fn build(&self, app: &mut App) {
+        app.add_systems(OnEnter(LevelState::Playing), setup_rain);
         app.add_systems(
             Update,
             (
@@ -40,6 +42,18 @@ impl Default for RainSpawner {
         Self {
             timer: Timer::from_seconds(0.01, TimerMode::Repeating),
         }
+    }
+}
+
+pub fn setup_rain(mut commands: Commands, assets: Res<AssetServer>, level: Res<Level>) {
+    if level.rain.is_some() {
+        commands.spawn((
+            LevelLifecycle,
+            AudioBundle {
+                source: assets.load("sounds/rain.wav"),
+                settings: PlaybackSettings::LOOP,
+            },
+        ));
     }
 }
 

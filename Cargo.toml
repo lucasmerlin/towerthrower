@@ -15,7 +15,7 @@ opt-level = 3
 
 
 [dependencies]
-bevy = { version = "0.12", features = ["wav"] }
+bevy = { version = "0.12", features = ["wav", "mp3"] }
 bevy_rapier2d = { version = "0.23", features = ["debug-render-2d", "simd-stable"]}
 num = { version = "0.4.1", features = [] }
 bevy_egui = "0.23.0"
