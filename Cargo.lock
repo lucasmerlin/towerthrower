@@ -3550,19 +3550,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "stackoverfall"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy-inspector-egui",
- "bevy_egui",
- "bevy_rapier2d",
- "bevy_tweening",
- "num",
- "rand",
-]
-
-[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3789,6 +3776,19 @@ dependencies = [
  "indexmap 2.1.0",
  "toml_datetime",
  "winnow",
+]
+
+[[package]]
+name = "towerthrower"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy-inspector-egui",
+ "bevy_egui",
+ "bevy_rapier2d",
+ "bevy_tweening",
+ "num",
+ "rand",
 ]
 
 [[package]]
