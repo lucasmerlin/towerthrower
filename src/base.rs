@@ -88,7 +88,7 @@ pub fn setup_base(mut commands: Commands, mut assets: ResMut<AssetServer>, mut l
                 LevelLifecycle,
                 SpatialBundle::from(
                     Transform::from_translation(Vec3::from((
-                        base.translation + additional_transform + Vec2::new(0.0, height / 2.0),
+                        base.translation + additional_transform + Vec2::new(0.0, -height / 2.0),
                         0.0,
                     )))
                     .with_rotation(Quat::from_rotation_z(base.rotation)),

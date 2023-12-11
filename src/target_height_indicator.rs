@@ -31,6 +31,15 @@ pub fn setup_target_height_indicator(
     }
 
     if let LevelGoal::ReachHeight(height) = level.goal {
+        let base_height = level
+            .bases
+            .iter()
+            .map(|base| base.translation.y)
+            .max_by(|a, b| b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal))
+            .unwrap_or(0.0);
+
+        let height = base_height + height;
+
         commands.spawn((
             TargetHeightIndicator,
             LevelLifecycle,

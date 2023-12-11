@@ -1,9 +1,9 @@
 use std::time::Duration;
 
-use crate::base::BaseType;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
 
+use crate::base::BaseType;
 use crate::block::{Aiming, Block, Falling};
 use crate::effect::EffectType;
 use crate::state::LevelState;
@@ -77,15 +77,17 @@ const fn static_launch_platform() -> LaunchPlatform {
 
 const fn free_launch_platform() -> LaunchPlatform {
     LaunchPlatform {
-        translation: Vec2::new(15.3, 10.8),
+        translation: Vec2::new(15.3, 14.8),
         kind: LaunchPlatformKind::Free,
     }
 }
 
+const DEFAULT_BASE_HEIGHT: f32 = 11.0;
+
 const fn default_level_base() -> LevelBase {
     LevelBase {
         base_type: BaseType::T7,
-        translation: Vec2::new(0.0, 10.0),
+        translation: Vec2::new(0.0, DEFAULT_BASE_HEIGHT),
         rotation: 0.0,
     }
 }
@@ -139,23 +141,9 @@ pub struct NextLevel(pub Option<usize>);
 #[derive(Component, Debug, Clone)]
 pub struct LevelLifecycle;
 
-pub static LEVELS: [Level; 9] = [
+pub static LEVELS: [Level; 10] = [
     Level {
         level: 0,
-        intro_text: Some("Test Level"),
-        goal: LevelGoal::ReachHeight(15.0),
-        time_limit: Some(Duration::from_secs(60)),
-        max_blocks: None,
-        bases: &[LevelBase {
-            base_type: BaseType::T9,
-            rotation: 0.1,
-            ..default_level_base()
-        }],
-        launch_platform: free_launch_platform(),
-        ..DEFAULT_LEVEL
-    },
-    Level {
-        level: 1,
         intro_text: Some("Welcome to your first day at Big Bad Buildings, Inc. Your job is to operate the Tower Thrower 3000, a state-of-the-art machine that constructs buildings by throwing blocks.
 For your first building, reach a target height of 20m.
 
@@ -165,8 +153,7 @@ Mouse wheel / Touch scroll: Adjust force
 Right click: Rotate 90 degrees
 Q / E: Finely adjust rotation
         "),
-        goal: LevelGoal::ReachHeight(20.0),
-        time_limit: Some(Duration::from_secs(60)),
+        goal: LevelGoal::ReachHeight(10.0),
         max_blocks: None,
         bases: &[LevelBase {
             base_type: BaseType::T9,
@@ -176,13 +163,12 @@ Q / E: Finely adjust rotation
         ..DEFAULT_LEVEL
     },
     Level {
-        level: 2,
-        intro_text: Some("For this building we only have a limited block supply. Be careful to not drop any! Stack 10 blocks to continue."),
-        goal: LevelGoal::ReachBlockCount(10),
-        time_limit: Some(Duration::from_secs(60)),
-        max_blocks: Some(13),
+        level: 1,
+        intro_text: Some("For this building we only have a limited block supply. Be careful to not drop any! Stack 15 blocks to continue."),
+        goal: LevelGoal::ReachBlockCount(15),
+        max_blocks: Some(20),
         bases: &[LevelBase {
-            base_type: BaseType::T4,
+            base_type: BaseType::T7,
             ..default_level_base()
         }],
         enabled_effects: &NO_EFFECTS,
@@ -190,13 +176,11 @@ Q / E: Finely adjust rotation
     },
     // TODO: Make this easier
     Level {
-        level: 3,
+        level: 2,
         intro_text: Some("Oh no, it's raining! Everything will be slippery"),
-        goal: LevelGoal::ReachHeight(20.0),
-        time_limit: Some(Duration::from_secs(60)),
-        max_blocks: Some(30),
+        goal: LevelGoal::ReachHeight(8.0),
         bases: &[LevelBase {
-            base_type: BaseType::T4,
+            base_type: BaseType::T7,
             ..default_level_base()
         }],
         rain: Some(10),
@@ -209,13 +193,17 @@ Q / E: Finely adjust rotation
         ..DEFAULT_LEVEL
     },
     Level {
-        level: 4,
+        level: 3,
         intro_text: Some("We found some glue in the basement, some blocks will be sticky."),
-        goal: LevelGoal::ReachBlockCount(20),
-        time_limit: Some(Duration::from_secs(60)),
+        goal: LevelGoal::ReachHeight(12.0),
         max_blocks: Some(25),
         bases: &[LevelBase {
-            base_type: BaseType::T4,
+            base_type: BaseType::T2,
+            translation: Vec2::new(-3.0, DEFAULT_BASE_HEIGHT + 1.0),
+            ..default_level_base()
+        }, LevelBase {
+            translation: Vec2::new(4.0, DEFAULT_BASE_HEIGHT),
+            base_type: BaseType::T3,
             ..default_level_base()
         }],
         enabled_effects: &[(EffectType::Glue, 1.0)],
@@ -223,68 +211,110 @@ Q / E: Finely adjust rotation
         ..DEFAULT_LEVEL
     },
     Level {
-        level: 5,
-        intro_text: Some("We're going to build the next one on two existing buildings, try combining them so you have a wider fundament."),
-        goal: LevelGoal::ReachHeight(35.0),
-        time_limit: Some(Duration::from_secs(60)),
-        max_blocks: Some(25),
+        level: 4,
+        intro_text: Some("Ooops, this one is tilted. We've upgraded your cannon with rocket boosters, so it can move freely now! Move with WASD."),
+        goal: LevelGoal::ReachHeight(10.0),
+        max_blocks: Some(20),
         bases: &[
             LevelBase {
-                base_type: BaseType::T2,
-                translation: Vec2::new(4.0, 10.0),
-                ..default_level_base()
-            },
-            LevelBase {
-                base_type: BaseType::T2,
-                translation: Vec2::new(-4.0, 10.0),
+                base_type: BaseType::T4,
+                rotation: 0.1,
                 ..default_level_base()
             },
         ],
         enabled_effects: &[(EffectType::Glue, 1.0)],
+        launch_platform: free_launch_platform(),
+        ..DEFAULT_LEVEL
+    },
+    Level {
+        level: 5,
+        goal: LevelGoal::ReachBlockCount(15),
+        time_limit: Some(Duration::from_secs(60)),
+        max_blocks: Some(25),
+        bases: &[
+            LevelBase {
+                base_type: BaseType::T4,
+                ..default_level_base()
+            },
+        ],
+        enabled_effects: &[(EffectType::Glue, 1.0)],
+        launch_platform: free_launch_platform(),
+        rain: Some(10),
+        friction: 0.2,
         ..DEFAULT_LEVEL
     },
     Level {
         level: 6,
-        intro_text: Some("Oops, this one has a tilted fundament. Be careful!"),
-        goal: LevelGoal::ReachHeight(35.0),
-        time_limit: Some(Duration::from_secs(60)),
-        max_blocks: Some(25),
+        intro_text: Some("We've ordered some magnets, these should hopefully help with building stability."),
+        goal: LevelGoal::ReachHeight(30.0),
         bases: &[
             LevelBase {
-                base_type: BaseType::T4,
-                rotation: -0.1,
+                base_type: BaseType::T7,
                 ..default_level_base()
             },
         ],
-        enabled_effects: &[(EffectType::Glue, 1.0)],
+        enabled_effects: &[
+            (EffectType::Glue, 1.0),
+            (EffectType::Magnetic, 2.0),
+        ],
+        effect_likelihood: 0.1,
+        launch_platform: free_launch_platform(),
         ..DEFAULT_LEVEL
     },
+
     Level {
         level: 7,
-        intro_text: Some("We've ordered some magnets, these should hopefully help with building stability."),
-        goal: LevelGoal::ReachHeight(35.0),
-        time_limit: Some(Duration::from_secs(60)),
-        max_blocks: Some(25),
+        intro_text: Some("We're going to build the next one on two existing buildings, try combining them so you have a wider fundament."),
+        goal: LevelGoal::ReachHeight(20.0),
         bases: &[
             LevelBase {
-                base_type: BaseType::T4,
-                rotation: -0.1,
+                base_type: BaseType::T2,
+                translation: Vec2::new(4.75, 10.0),
+                ..default_level_base()
+            },
+            LevelBase {
+                base_type: BaseType::T2,
+                translation: Vec2::new(-4.75, 10.0),
                 ..default_level_base()
             },
         ],
-        enabled_effects: &[(EffectType::Glue, 1.0)],
+        launch_platform: free_launch_platform(),
         ..DEFAULT_LEVEL
     },
     Level {
         level: 8,
-        intro_text: Some("Looks like it's starting to rain. The rain will make the blocks slippery, so be careful!"),
-        goal: LevelGoal::ReachHeight(20.0),
-        bases: &[LevelBase {
-            base_type: BaseType::T4,
-            ..default_level_base()
-        }],
+        intro_text: Some("Don't make any mistakes here"),
+        goal: LevelGoal::ReachBlockCount(30),
+        max_blocks: Some(33),
+        bases: &[
+            LevelBase {
+                base_type: BaseType::T7,
+                ..default_level_base()
+            },
+        ],
+        launch_platform: free_launch_platform(),
         rain: Some(10),
         friction: 0.2,
+        ..DEFAULT_LEVEL
+    },
+    Level {
+        level: 9,
+        goal: LevelGoal::ReachHeight(22.0),
+        bases: &[
+            LevelBase {
+                base_type: BaseType::T2,
+                translation: Vec2::new(3.0, 10.0),
+                rotation: 0.5,
+                ..default_level_base()
+            },
+            LevelBase {
+                base_type: BaseType::T2,
+                translation: Vec2::new(-3.0, 10.0),
+                rotation: -0.5,
+                ..default_level_base()
+            },
+        ],
+        launch_platform: free_launch_platform(),
         ..DEFAULT_LEVEL
     },
 ];
@@ -314,10 +344,18 @@ pub fn load_level_event(
 
 pub fn check_current_block_stats(
     query: Query<(&Block, &Transform, &Velocity), (Without<Aiming>, Without<Falling>)>,
+    level: Res<Level>,
     mut level_stats: ResMut<LevelStats>,
 ) {
     let mut max_height = 0.0;
     let mut block_count = 0;
+
+    let base_height = level
+        .bases
+        .iter()
+        .map(|base| base.translation.y)
+        .max_by(|a, b| b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal))
+        .unwrap_or(0.0);
 
     for (block, transform, velocity) in query.iter() {
         if velocity.linvel.length() < 0.03 {
@@ -325,7 +363,7 @@ pub fn check_current_block_stats(
 
             let corners = block.block_type.all_corners();
 
-            let height = corners
+            let height = (corners
                 .iter()
                 .map(|corner| {
                     let pos = transform
@@ -334,7 +372,9 @@ pub fn check_current_block_stats(
                     pos.y
                 })
                 .max_by(|a, b| a.partial_cmp(b).unwrap())
-                .unwrap_or(0.0);
+                .unwrap_or(0.0)
+                - base_height)
+                .max(0.0);
 
             if height > max_height {
                 max_height = height;

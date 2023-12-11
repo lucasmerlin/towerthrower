@@ -39,7 +39,7 @@ pub fn camera_movement_system(
 
     let target_height = highest - start_move_at;
 
-    let increase = 0.1;
+    let increase = 0.03;
 
     if target_height > camera_movement.height {
         camera_movement.height += increase;
