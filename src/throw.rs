@@ -25,14 +25,17 @@ impl Plugin for ThrowPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             PreUpdate,
-            (create_aiming_block.run_if(in_state(LevelState::Playing)),),
+            (create_aiming_block
+                .run_if(in_state(LevelState::Playing).or_else(in_state(LevelState::KeepPlaying))),),
         )
         .add_systems(OnEnter(LevelState::Playing), setup_throw_queue)
         .add_systems(OnExit(LevelState::Playing), remove_simulation_system)
         .add_systems(
             PreUpdate,
-            (simulate_throw_system,).run_if(in_state(LevelState::Playing)),
+            (simulate_throw_system,)
+                .run_if(in_state(LevelState::Playing).or_else(in_state(LevelState::KeepPlaying))),
         )
+        .add_systems(OnEnter(LevelState::KeepPlaying), setup_throw_queue)
         .add_systems(
             Update,
             (
@@ -43,7 +46,7 @@ impl Plugin for ThrowPlugin {
                 throw_system,
                 update_aiming_block_position,
             )
-                .run_if(in_state(LevelState::Playing)),
+                .run_if(in_state(LevelState::Playing).or_else(in_state(LevelState::KeepPlaying))),
         )
         .init_resource::<Aim>()
         .init_resource::<ThrowQueue>();
@@ -353,8 +356,18 @@ fn throw_queue_item(level: &Level) -> Block {
     Block::new(block, variant, effect, initial_rotation)
 }
 
-pub fn setup_throw_queue(mut throw_queue: ResMut<ThrowQueue>, level: Res<Level>) {
+pub fn setup_throw_queue(
+    mut throw_queue: ResMut<ThrowQueue>,
+    level: Res<Level>,
+    level_state: Res<State<LevelState>>,
+) {
     *throw_queue = ThrowQueue::default();
+
+    // Use the default throw queue when the player keeps playing
+    if *level_state == LevelState::KeepPlaying {
+        return;
+    }
+
     if let Some(max_blocks) = level.max_blocks {
         for _ in 0..max_blocks {
             throw_queue.queue.push(throw_queue_item(&level));

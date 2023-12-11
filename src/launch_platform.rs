@@ -8,7 +8,7 @@ use std::time::Duration;
 use crate::level::{LaunchPlatformKind, Level, LevelLifecycle};
 use crate::state::LevelState;
 use crate::throw::Aim;
-use crate::ASSET_SCALE;
+use crate::{ASSET_SCALE, HORIZONTAL_VIEWPORT_SIZE};
 
 pub struct LaunchPlatformPlugin;
 
@@ -17,8 +17,12 @@ impl Plugin for LaunchPlatformPlugin {
         app.add_systems(OnEnter(LevelState::Playing), (spawn_launch_platform_system))
             .add_systems(
                 Update,
-                ((barrel_rotation_system, launch_platform_control_system)
-                    .run_if(in_state(LevelState::Playing)),),
+                (
+                    (barrel_rotation_system, launch_platform_control_system).run_if(
+                        in_state(LevelState::Playing).or_else(in_state(LevelState::KeepPlaying)),
+                    ),
+                    keep_launch_platform_visible_system,
+                ),
             );
     }
 }
@@ -208,5 +212,16 @@ pub fn barrel_rotation_system(aim: Res<Aim>, mut query: Query<&mut Transform, Wi
                 .unwrap_or(Vec2::Y)
                 .angle_between(Vec2::Y),
         );
+    }
+}
+
+pub fn keep_launch_platform_visible_system(mut query: Query<&mut Transform, With<LaunchPlatform>>) {
+    for mut transform in query.iter_mut() {
+        transform.translation.x = transform.translation.x.clamp(
+            -HORIZONTAL_VIEWPORT_SIZE / 2.0,
+            HORIZONTAL_VIEWPORT_SIZE / 2.0,
+        );
+
+        transform.translation.y = transform.translation.y.max(10.0);
     }
 }

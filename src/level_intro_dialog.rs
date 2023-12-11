@@ -34,6 +34,7 @@ pub fn update_level_intro_dialog(
     stats: Res<LevelStats>,
     fees: Res<LevelFees>,
     mut next_level: EventWriter<NextLevel>,
+    mut set_level_state: ResMut<NextState<LevelState>>,
 ) {
     if dialog.intro_visible {
         if let Some(intro_text) = level.intro_text {
@@ -117,6 +118,9 @@ pub fn update_level_intro_dialog(
                                 if ui.button("NEXT").clicked() {
                                     next_level.send(NextLevel(None));
                                 }
+                            }
+                            if ui.button("KEEP PLAYING").clicked() {
+                                set_level_state.set(LevelState::KeepPlaying);
                             }
                         },
                     );

@@ -24,7 +24,7 @@ impl Plugin for BlockPlugin {
                 block_stable_system,
                 despawn_dropped_blocks,
             )
-                .run_if(in_state(LevelState::Playing)),
+                .run_if(in_state(LevelState::Playing).or_else(in_state(LevelState::KeepPlaying))),
         )
         .add_event::<CaughtBlock>();
     }

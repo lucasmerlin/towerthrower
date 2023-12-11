@@ -19,6 +19,7 @@ pub enum LevelState {
     Playing,
     Lost,
     Won,
+    KeepPlaying,
 }
 
 #[derive(States, Debug, Default, Hash, Clone, Eq, PartialEq)]

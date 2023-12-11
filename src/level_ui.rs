@@ -130,6 +130,7 @@ pub fn target_ui(
     queue: Res<ThrowQueue>,
     mut next_level: EventWriter<NextLevel>,
     mut menu_open: Local<bool>,
+    level_state: Res<State<LevelState>>,
 ) {
     if !*is_initialized {
         *is_initialized = true;
@@ -191,70 +192,72 @@ WASD: Move cannon",
             });
     }
 
-    egui::Window::new("Target UI")
-        .title_bar(false)
-        .movable(false)
-        .resizable(false)
-        .frame(Frame::none())
-        .anchor(egui::Align2::RIGHT_TOP, egui::Vec2::new(-16.0, 8.0))
-        .interactable(false)
-        .show(egui.ctx_mut(), |ui| {
-            ui.with_layout(Layout::top_down(egui::Align::Max), |ui| {
-                match level.goal {
-                    LevelGoal::ReachHeight(height) => {
+    if *level_state != LevelState::KeepPlaying {
+        egui::Window::new("Target UI")
+            .title_bar(false)
+            .movable(false)
+            .resizable(false)
+            .frame(Frame::none())
+            .anchor(egui::Align2::RIGHT_TOP, egui::Vec2::new(-16.0, 8.0))
+            .interactable(false)
+            .show(egui.ctx_mut(), |ui| {
+                ui.with_layout(Layout::top_down(egui::Align::Max), |ui| {
+                    match level.goal {
+                        LevelGoal::ReachHeight(height) => {
+                            ui.horizontal(|ui| {
+                                ui.set_min_height(45.0);
+                                ui.label(
+                                    RichText::new(format!("/ {:.1}m", height))
+                                        .size(30.0)
+                                        .color(Color32::DARK_GRAY),
+                                );
+                                ui.label(
+                                    RichText::new(format!("{:.1}m", level_stats.current_height))
+                                        .size(40.0)
+                                        .color(Color32::BLACK),
+                                );
+                            });
+                        }
+                        LevelGoal::ReachBlockCount(count) => {
+                            ui.horizontal(|ui| {
+                                ui.set_min_height(45.0);
+                                ui.label(
+                                    RichText::new(format!("/ {}", count))
+                                        .size(30.0)
+                                        .color(Color32::DARK_GRAY),
+                                );
+                                ui.label(
+                                    RichText::new(format!("{}", level_stats.current_block_count))
+                                        .size(40.0)
+                                        .color(Color32::BLACK),
+                                );
+                            });
+                        }
+                    }
+
+                    if let Some(max_blocks) = level.max_blocks {
+                        let add_one_for_aiming_block = if has_aiming_block.get_single().is_ok() {
+                            1
+                        } else {
+                            0
+                        };
+
                         ui.horizontal(|ui| {
-                            ui.set_min_height(45.0);
                             ui.label(
-                                RichText::new(format!("/ {:.1}m", height))
-                                    .size(30.0)
-                                    .color(Color32::DARK_GRAY),
+                                RichText::new(format!(
+                                    "{}",
+                                    queue.queue.len() + add_one_for_aiming_block
+                                ))
+                                .size(40.0)
+                                .color(Color32::BLACK),
                             );
-                            ui.label(
-                                RichText::new(format!("{:.1}m", level_stats.current_height))
-                                    .size(40.0)
-                                    .color(Color32::BLACK),
-                            );
+                            ui.image(ImageSource::Texture(SizedTexture::new(
+                                *rendered_texture_id,
+                                egui::Vec2::new(60.0, 40.0),
+                            )));
                         });
                     }
-                    LevelGoal::ReachBlockCount(count) => {
-                        ui.horizontal(|ui| {
-                            ui.set_min_height(45.0);
-                            ui.label(
-                                RichText::new(format!("/ {}", count))
-                                    .size(30.0)
-                                    .color(Color32::DARK_GRAY),
-                            );
-                            ui.label(
-                                RichText::new(format!("{}", level_stats.current_block_count))
-                                    .size(40.0)
-                                    .color(Color32::BLACK),
-                            );
-                        });
-                    }
-                }
-
-                if let Some(max_blocks) = level.max_blocks {
-                    let add_one_for_aiming_block = if has_aiming_block.get_single().is_ok() {
-                        1
-                    } else {
-                        0
-                    };
-
-                    ui.horizontal(|ui| {
-                        ui.label(
-                            RichText::new(format!(
-                                "{}",
-                                queue.queue.len() + add_one_for_aiming_block
-                            ))
-                            .size(40.0)
-                            .color(Color32::BLACK),
-                        );
-                        ui.image(ImageSource::Texture(SizedTexture::new(
-                            *rendered_texture_id,
-                            egui::Vec2::new(60.0, 40.0),
-                        )));
-                    });
-                }
+                });
             });
-        });
+    }
 }
