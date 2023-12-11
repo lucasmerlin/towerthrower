@@ -140,6 +140,7 @@ pub fn target_ui(
         .resizable(false)
         .frame(Frame::none())
         .anchor(egui::Align2::RIGHT_TOP, egui::Vec2::new(-16.0, 8.0))
+        .interactable(false)
         .show(egui.ctx_mut(), |ui| {
             ui.with_layout(Layout::top_down(egui::Align::Max), |ui| {
                 match level.goal {

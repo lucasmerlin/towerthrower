@@ -99,7 +99,7 @@ pub struct Level {
     pub bases: &'static [LevelBase],
     pub enabled_effects: &'static [(EffectType, f32)],
     pub effect_likelihood: f32,
-    pub intro_text: &'static str,
+    pub intro_text: Option<&'static str>,
     pub rain: Option<usize>,
     pub friction: f32,
     pub launch_platform: LaunchPlatform,
@@ -107,6 +107,8 @@ pub struct Level {
 
 pub const DEFAULT_EFFECTS: [(EffectType, f32); 2] =
     [(EffectType::Glue, 1.0), (EffectType::Magnetic, 1.0)];
+
+pub const NO_EFFECTS: [(EffectType, f32); 0] = [];
 
 pub const DEFAULT_LEVEL: Level = Level {
     level: 0,
@@ -119,7 +121,7 @@ pub const DEFAULT_LEVEL: Level = Level {
     }],
     enabled_effects: &DEFAULT_EFFECTS,
     effect_likelihood: 0.05,
-    intro_text: "Welcome to the game!",
+    intro_text: None,
     rain: None,
     friction: 0.5,
     launch_platform: static_launch_platform(),
@@ -137,10 +139,10 @@ pub struct NextLevel(pub Option<usize>);
 #[derive(Component, Debug, Clone)]
 pub struct LevelLifecycle;
 
-pub static LEVELS: [Level; 8] = [
+pub static LEVELS: [Level; 9] = [
     Level {
         level: 0,
-        intro_text: "Test Level",
+        intro_text: Some("Test Level"),
         goal: LevelGoal::ReachHeight(15.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: None,
@@ -154,9 +156,15 @@ pub static LEVELS: [Level; 8] = [
     },
     Level {
         level: 1,
-        intro_text: "Welcome to your first day at Big Bad Buildings, Inc. Your job is to operate the Tower Thrower 3000, a state-of-the-art machine that constructs buildings by throwing blocks.\
-        For your first building, reach a target height of 200m.\
-        ",
+        intro_text: Some("Welcome to your first day at Big Bad Buildings, Inc. Your job is to operate the Tower Thrower 3000, a state-of-the-art machine that constructs buildings by throwing blocks.
+For your first building, reach a target height of 20m.
+
+Controls:
+Mouse: aim, 
+Mouse wheel / Touch scroll: Adjust force
+Right click: Rotate 90 degrees
+Q / E: Finely adjust rotation
+        "),
         goal: LevelGoal::ReachHeight(20.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: None,
@@ -164,11 +172,12 @@ pub static LEVELS: [Level; 8] = [
             base_type: BaseType::T9,
             ..default_level_base()
         }],
-        launch_platform: free_launch_platform(),
+        enabled_effects: &NO_EFFECTS,
         ..DEFAULT_LEVEL
     },
     Level {
         level: 2,
+        intro_text: Some("For this building we only have a limited block supply. Be careful to not drop any! Stack 10 blocks to continue."),
         goal: LevelGoal::ReachBlockCount(10),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(13),
@@ -176,10 +185,13 @@ pub static LEVELS: [Level; 8] = [
             base_type: BaseType::T4,
             ..default_level_base()
         }],
+        enabled_effects: &NO_EFFECTS,
         ..DEFAULT_LEVEL
     },
+    // TODO: Make this easier
     Level {
         level: 3,
+        intro_text: Some("Oh no, it's raining! Everything will be slippery"),
         goal: LevelGoal::ReachHeight(20.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(30),
@@ -187,10 +199,18 @@ pub static LEVELS: [Level; 8] = [
             base_type: BaseType::T4,
             ..default_level_base()
         }],
+        rain: Some(10),
+        friction: 0.2,
+        enabled_effects: &NO_EFFECTS,
+        launch_platform: LaunchPlatform {
+          translation: Vec2::new(13.0, 10.5),
+            kind: LaunchPlatformKind::Static,
+        },
         ..DEFAULT_LEVEL
     },
     Level {
         level: 4,
+        intro_text: Some("We found some glue in the basement, some blocks will be sticky."),
         goal: LevelGoal::ReachBlockCount(20),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(25),
@@ -198,11 +218,13 @@ pub static LEVELS: [Level; 8] = [
             base_type: BaseType::T4,
             ..default_level_base()
         }],
+        enabled_effects: &[(EffectType::Glue, 1.0)],
+        effect_likelihood: 0.1,
         ..DEFAULT_LEVEL
     },
     Level {
         level: 5,
-        intro_text: "We're going to build the next one on two existing buildings, try combining them so you have a wider fundament.",
+        intro_text: Some("We're going to build the next one on two existing buildings, try combining them so you have a wider fundament."),
         goal: LevelGoal::ReachHeight(35.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(25),
@@ -223,7 +245,7 @@ pub static LEVELS: [Level; 8] = [
     },
     Level {
         level: 6,
-        intro_text: "Oops, this one has a tilted fundament. Be careful!",
+        intro_text: Some("Oops, this one has a tilted fundament. Be careful!"),
         goal: LevelGoal::ReachHeight(35.0),
         time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(25),
@@ -239,7 +261,23 @@ pub static LEVELS: [Level; 8] = [
     },
     Level {
         level: 7,
-        intro_text: "Looks like it's starting to rain. The rain will make the blocks slippery, so be careful!",
+        intro_text: Some("We've ordered some magnets, these should hopefully help with building stability."),
+        goal: LevelGoal::ReachHeight(35.0),
+        time_limit: Some(Duration::from_secs(60)),
+        max_blocks: Some(25),
+        bases: &[
+            LevelBase {
+                base_type: BaseType::T4,
+                rotation: -0.1,
+                ..default_level_base()
+            },
+        ],
+        enabled_effects: &[(EffectType::Glue, 1.0)],
+        ..DEFAULT_LEVEL
+    },
+    Level {
+        level: 8,
+        intro_text: Some("Looks like it's starting to rain. The rain will make the blocks slippery, so be careful!"),
         goal: LevelGoal::ReachHeight(20.0),
         bases: &[LevelBase {
             base_type: BaseType::T4,
@@ -248,7 +286,7 @@ pub static LEVELS: [Level; 8] = [
         rain: Some(10),
         friction: 0.2,
         ..DEFAULT_LEVEL
-    }
+    },
 ];
 
 pub fn load_level_event(

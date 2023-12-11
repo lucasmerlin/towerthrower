@@ -67,7 +67,7 @@ impl Default for Aim {
             direction: Vec2::from_angle(PI / 1.5),
             force_factor: 0.0,
             force: 500.0,
-            rotation: 0.1,
+            rotation: 0.0,
         }
     }
 }
@@ -544,5 +544,7 @@ pub fn throw_system(
 
             commands.entity(entity).insert(Animator::new(tween));
         }
+
+        aim.rotation = 0.0;
     }
 }

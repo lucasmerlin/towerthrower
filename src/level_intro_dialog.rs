@@ -29,33 +29,36 @@ pub fn update_level_intro_dialog(
     level: Res<Level>,
 ) {
     if dialog.visible {
-        egui::Window::new("Level Introo")
-            .collapsible(false)
-            .resizable(false)
-            .title_bar(false)
-            .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
-            .frame(
-                Frame::none()
-                    .fill(Color32::from_rgba_unmultiplied(0, 0, 0, 250))
-                    .inner_margin(8.0),
-            )
-            .show(egui.ctx_mut(), |ui| {
-                ui.set_min_width(200.0);
+        if let Some(intro_text) = level.intro_text {
+            egui::Window::new("Level Intro")
+                .collapsible(false)
+                .resizable(false)
+                .title_bar(false)
+                .anchor(egui::Align2::CENTER_CENTER, egui::Vec2::ZERO)
+                .constrain(true)
+                .frame(
+                    Frame::none()
+                        .fill(Color32::from_rgba_unmultiplied(0, 0, 0, 250))
+                        .inner_margin(8.0),
+                )
+                .show(egui.ctx_mut(), |ui| {
+                    ui.set_min_width(120.0);
 
-                ui.heading(format!("Level {}", level.level + 1));
+                    ui.heading(format!("Level {}", level.level + 1));
 
-                ui.label(level.intro_text);
+                    ui.label(intro_text);
 
-                ui.add_space(50.0);
+                    ui.add_space(50.0);
 
-                ui.with_layout(
-                    egui::Layout::top_down_justified(egui::Align::Center),
-                    |ui| {
-                        if ui.button("START").clicked() {
-                            dialog.visible = false;
-                        }
-                    },
-                );
-            });
+                    ui.with_layout(
+                        egui::Layout::top_down_justified(egui::Align::Center),
+                        |ui| {
+                            if ui.button("START").clicked() {
+                                dialog.visible = false;
+                            }
+                        },
+                    );
+                });
+        }
     }
 }
