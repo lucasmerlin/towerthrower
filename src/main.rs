@@ -69,7 +69,7 @@ pub const BARREL_LENGTH: f32 = 3.5;
 
 fn main() {
     App::new()
-        .insert_resource(ClearColor(Color::rgb_u8(250, 225, 124)))
+        .insert_resource(ClearColor(Color::rgb_u8(44, 79, 255)))
         .add_plugins((
             // Bevy plugins
             DefaultPlugins.set(WindowPlugin {

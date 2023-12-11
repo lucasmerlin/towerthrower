@@ -46,7 +46,7 @@ pub fn setup_city(mut commands: Commands, assets: Res<AssetServer>, level: Res<L
         ));
     };
 
-    spawn(3840.0, 4634.0, 100.0, 0.5, true, "05_foreground");
+    spawn(3840.0, 2048.0, 100.0, 0.5, true, "05_foreground");
     spawn(3840.0, 691.0, -5.0, 0.0, true, "04_street");
     spawn(3840.0, 818.0, -10.0, 0.0, true, "03_main");
     spawn(3840.0, 1465.0, -20.0, -0.2, true, "02_middle");
