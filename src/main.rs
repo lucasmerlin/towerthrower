@@ -71,18 +71,24 @@ pub const BARREL_LENGTH: f32 = 3.5;
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb_u8(44, 79, 255)))
+        .insert_resource(AssetMetaCheck::Never)
         .add_plugins((
             // Bevy plugins
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    title: "Tower Thrower".into(),
-                    fit_canvas_to_parent: true,
-                    // resolution: WindowResolution::new(1280.0, 720.0)
-                    //     .with_scale_factor_override(1.0),
+            DefaultPlugins
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        title: "Tower Thrower".into(),
+                        fit_canvas_to_parent: true,
+                        // resolution: WindowResolution::new(1280.0, 720.0)
+                        //     .with_scale_factor_override(1.0),
+                        ..default()
+                    }),
                     ..default()
+                })
+                .set(AssetPlugin {
+                    mode: AssetMode::Unprocessed,
+                    ..Default::default()
                 }),
-                ..default()
-            }),
             RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(PIXELS_PER_METER)
                 .in_fixed_schedule(),
             {

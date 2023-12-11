@@ -19,14 +19,7 @@ impl Default for CameraMovement {
 pub fn camera_movement_system(
     mut camera_movement: ResMut<CameraMovement>,
     mut camera_query: Query<(&mut Transform, &GlobalTransform, &Camera), With<MainCamera>>,
-    mut query: Query<
-        &Transform,
-        (
-            Without<MainCamera>,
-            Without<Falling>,
-            Or<(With<Block>, With<LaunchPlatform>)>,
-        ),
-    >,
+    mut query: Query<&Transform, (With<LaunchPlatform>, Without<MainCamera>)>,
 ) {
     let start_move_at = 20.0;
 
@@ -39,7 +32,7 @@ pub fn camera_movement_system(
 
     let target_height = highest - start_move_at;
 
-    let increase = 0.03;
+    let increase = 0.06;
 
     if target_height > camera_movement.height {
         camera_movement.height += increase;

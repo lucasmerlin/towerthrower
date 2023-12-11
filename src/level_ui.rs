@@ -5,7 +5,7 @@ use bevy_egui::{egui, EguiContexts};
 
 use crate::block::Aiming;
 use crate::environment::fees::LevelFees;
-use crate::level::{Level, LevelGoal, LevelStats, NextLevel};
+use crate::level::{Level, LevelGoal, LevelStats, NextLevel, LEVELS};
 use crate::state::LevelState;
 use crate::throw::ThrowQueue;
 
@@ -14,7 +14,7 @@ pub struct LevelUiPlugin;
 impl Plugin for LevelUiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_level_ui)
-            .add_systems(Update, (egui_level_ui, target_ui));
+            .add_systems(Update, (target_ui));
     }
 }
 
@@ -128,10 +128,55 @@ pub fn target_ui(
     mut rendered_texture_id: Local<egui::TextureId>,
     mut has_aiming_block: Query<(), With<Aiming>>,
     queue: Res<ThrowQueue>,
+    mut next_level: EventWriter<NextLevel>,
+    mut menu_open: Local<bool>,
 ) {
     if !*is_initialized {
         *is_initialized = true;
         *rendered_texture_id = egui.add_image(assets.load("blocks/T/2.png"));
+    }
+
+    egui::Window::new("Menu Button UI")
+        .title_bar(false)
+        .movable(false)
+        .resizable(false)
+        .frame(Frame::none())
+        .anchor(egui::Align2::LEFT_TOP, egui::Vec2::new(16.0, 8.0))
+        .show(egui.ctx_mut(), |ui| {
+            ui.horizontal(|ui| {
+                if ui.button("MENU").clicked() {
+                    *menu_open = !*menu_open;
+                }
+
+                ui.label(
+                    RichText::new(format!("Level {}: {}", level.level + 1, level.name))
+                        .size(20.0)
+                        .color(Color32::BLACK),
+                );
+            });
+        });
+
+    if *menu_open {
+        egui::Window::new("Menu")
+            .title_bar(false)
+            .movable(false)
+            .resizable(false)
+            .anchor(egui::Align2::LEFT_TOP, egui::Vec2::new(16.0, 48.0))
+            .show(egui.ctx_mut(), |ui| {
+                if level.level < LEVELS.len() - 1 {
+                    if ui.button("Next Level").clicked() {
+                        next_level.send(NextLevel(None));
+                    }
+                }
+                if level.level > 0 {
+                    if ui.button("Previous Level").clicked() {
+                        next_level.send(NextLevel(Some(level.level - 1)));
+                    }
+                }
+                if ui.button("Retry").clicked() {
+                    next_level.send(NextLevel(Some(level.level)));
+                }
+            });
     }
 
     egui::Window::new("Target UI")
