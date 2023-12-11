@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
+use bevy_egui::egui::Visuals;
 use bevy_egui::{egui, EguiContexts, EguiSettings};
 
 pub struct UiPlugin;
@@ -34,8 +35,8 @@ fn update_ui_scale_factor(
 
 fn egui_setup(mut egui: EguiContexts) {
     let ctx = egui.ctx_mut();
-
     ctx.style_mut(|style| {
+        style.visuals = Visuals::light();
         style.spacing.button_padding = egui::Vec2::new(16.0, 8.0);
 
         // style

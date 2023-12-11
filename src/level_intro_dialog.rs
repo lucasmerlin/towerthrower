@@ -38,7 +38,7 @@ pub fn update_level_intro_dialog(
                 .constrain(true)
                 .frame(
                     Frame::none()
-                        .fill(Color32::from_rgba_unmultiplied(0, 0, 0, 250))
+                        .fill(Color32::from_rgba_unmultiplied(255, 255, 255, 220))
                         .inner_margin(8.0),
                 )
                 .show(egui.ctx_mut(), |ui| {

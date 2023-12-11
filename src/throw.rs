@@ -250,49 +250,51 @@ pub fn simulate_throw_system(
         // println!("hit: {:?}", hit);
         //rapier_context.intersection_with_shape()
 
-        for step in steps {
-            commands.spawn((
-                SpriteBundle {
-                    transform: step,
-                    texture: assets.load("circle.png"),
-                    sprite: Sprite {
-                        custom_size: Some(Vec2::new(0.12, 0.12)),
+        if has_falling_block.is_empty() {
+            for step in steps {
+                commands.spawn((
+                    SpriteBundle {
+                        transform: step,
+                        texture: assets.load("circle.png"),
+                        sprite: Sprite {
+                            custom_size: Some(Vec2::new(0.12, 0.12)),
+                            ..Default::default()
+                        },
                         ..Default::default()
                     },
-                    ..Default::default()
-                },
-                TargetIndicator,
-            ));
-        }
+                    TargetIndicator,
+                ));
+            }
 
-        let target_indicator_block = target_indicator_block_query.get_single();
-        if let Ok(target_indicator_block) = target_indicator_block {
-            commands.entity(target_indicator_block).insert(transform);
-        } else {
-            let mut sprite = block.sprite(&*assets);
-            sprite.transform = transform;
-            sprite.sprite.color = Color::rgba(1.0, 1.0, 1.0, 0.5);
-            commands
-                .spawn((sprite, TargetIndicator, TargetIndicatorBlock, shape, Sensor))
-                .with_children(|parent| {
-                    if let Some(effect) = block.effect_type {
-                        let mut texture = effect.texture(block.block_type);
-                        let sprite = SpriteBundle {
-                            transform: Transform::from_xyz(0.0, 0.0, 0.1),
-                            sprite: Sprite {
-                                color: Color::rgba(1.0, 1.0, 1.0, 0.8),
-                                custom_size: Some(Vec2::new(
-                                    block.block_type.width(),
-                                    block.block_type.height(),
-                                )),
+            let target_indicator_block = target_indicator_block_query.get_single();
+            if let Ok(target_indicator_block) = target_indicator_block {
+                commands.entity(target_indicator_block).insert(transform);
+            } else {
+                let mut sprite = block.sprite(&*assets);
+                sprite.transform = transform;
+                sprite.sprite.color = Color::rgba(1.0, 1.0, 1.0, 0.5);
+                commands
+                    .spawn((sprite, TargetIndicator, TargetIndicatorBlock, shape, Sensor))
+                    .with_children(|parent| {
+                        if let Some(effect) = block.effect_type {
+                            let mut texture = effect.texture(block.block_type);
+                            let sprite = SpriteBundle {
+                                transform: Transform::from_xyz(0.0, 0.0, 0.1),
+                                sprite: Sprite {
+                                    color: Color::rgba(1.0, 1.0, 1.0, 0.8),
+                                    custom_size: Some(Vec2::new(
+                                        block.block_type.width(),
+                                        block.block_type.height(),
+                                    )),
+                                    ..Default::default()
+                                },
+                                texture: assets.load(texture),
                                 ..Default::default()
-                            },
-                            texture: assets.load(texture),
-                            ..Default::default()
-                        };
-                        parent.spawn((sprite,));
-                    }
-                });
+                            };
+                            parent.spawn((sprite,));
+                        }
+                    });
+            }
         }
     }
 }
@@ -542,24 +544,15 @@ pub fn throw_system(
         }
 
         for entity in barrel.iter() {
-            // Create a single animation (tween) to move an entity.
             let tween = Tween::new(
-                // Use a quadratic easing on both endpoints.
                 EaseFunction::QuadraticInOut,
-                // Animation time (one way only; for ping-pong it takes 2 seconds
-                // to come back to start).
                 Duration::from_secs_f32(0.125),
-                // The lens gives the Animator access to the Transform component,
-                // to animate it. It also contains the start and end values associated
-                // with the animation ratios 0. and 1.
                 TransformScaleLens {
                     start: Vec3::ONE,
                     end: Vec3::new(1.5, 0.8, 1.0),
                 },
             )
-            // Repeat twice (one per way)
             .with_repeat_count(RepeatCount::Finite(2))
-            // After each iteration, reverse direction (ping-pong)
             .with_repeat_strategy(RepeatStrategy::MirroredRepeat);
 
             commands.entity(entity).insert(Animator::new(tween));

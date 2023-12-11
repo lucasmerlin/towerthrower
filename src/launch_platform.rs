@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 use bevy::sprite::Anchor;
 use bevy_rapier2d::prelude::*;
+use bevy_tweening::lens::{TransformRotateXLens, TransformRotationLens, TransformScaleLens};
+use bevy_tweening::{Animator, EaseFunction, RepeatCount, RepeatStrategy, Tween};
+use std::time::Duration;
 
 use crate::level::{LaunchPlatformKind, Level, LevelLifecycle};
 use crate::state::LevelState;
@@ -25,6 +28,9 @@ pub struct LaunchPlatform;
 
 #[derive(Component, Debug)]
 pub struct Barrel;
+
+#[derive(Component, Debug)]
+pub struct PlatformBase;
 
 pub fn spawn_launch_platform_system(
     mut commands: Commands,
@@ -58,29 +64,38 @@ pub fn spawn_launch_platform_system(
         ))
         .with_children(|parent| {
             if let LaunchPlatformKind::Static = level.launch_platform.kind {
-                parent.spawn(SpriteBundle {
-                    texture: assets.load("cannon/off.png"),
-                    sprite: Sprite {
-                        custom_size: Some(size),
+                parent.spawn((
+                    PlatformBase,
+                    SpriteBundle {
+                        texture: assets.load("cannon/off.png"),
+                        sprite: Sprite {
+                            custom_size: Some(size),
+                            ..Default::default()
+                        },
+                        transform: Transform::from_xyz(0.0, 0.0, 0.0),
                         ..Default::default()
                     },
-                    transform: Transform::from_xyz(0.0, 0.0, 0.0),
-                    ..Default::default()
-                });
+                ));
             } else {
-                parent.spawn((SpriteBundle {
-                    texture: assets.load("cannon/on.png"),
-                    sprite: Sprite {
-                        custom_size: Some(Vec2::new(res_w * ASSET_SCALE, res_h_on * ASSET_SCALE)),
+                parent.spawn((
+                    PlatformBase,
+                    SpriteBundle {
+                        texture: assets.load("cannon/on.png"),
+                        sprite: Sprite {
+                            custom_size: Some(Vec2::new(
+                                res_w * ASSET_SCALE,
+                                res_h_on * ASSET_SCALE,
+                            )),
+                            anchor: Anchor::Custom(Vec2::new(0.0, 0.4)),
+                            ..Default::default()
+                        },
+                        transform: Transform::from_translation(Vec3::new(
+                            0.0, // (size.y - (res_h_on * ASSET_SCALE)) / 2.0,
+                            0.0, 0.0,
+                        )),
                         ..Default::default()
                     },
-                    transform: Transform::from_translation(Vec3::new(
-                        0.0,
-                        (size.y - (res_h_on * ASSET_SCALE)) / 2.0,
-                        0.0,
-                    )),
-                    ..Default::default()
-                },));
+                ));
             }
 
             parent.spawn((
@@ -100,13 +115,30 @@ pub fn spawn_launch_platform_system(
 }
 
 pub fn launch_platform_control_system(
+    mut commands: Commands,
     key_code: Res<Input<KeyCode>>,
     mut query: Query<&mut Velocity, With<LaunchPlatform>>,
+    mut base_query: Query<(Entity, &mut Transform), With<PlatformBase>>,
     level: Res<Level>,
 ) {
     if let LaunchPlatformKind::Static = level.launch_platform.kind {
         return;
     }
+
+    let (base, mut base_transform) = base_query.get_single_mut().unwrap();
+
+    let mut tween = |end: f32| {
+        let tween = Tween::new(
+            EaseFunction::QuadraticInOut,
+            Duration::from_secs_f32(0.25),
+            TransformRotationLens {
+                start: base_transform.rotation,
+                end: Quat::from_rotation_z(end),
+            },
+        );
+        commands.entity(base).insert(Animator::new(tween));
+    };
+
     for mut velocity in query.iter_mut() {
         let max_velocity = 25.0;
         let increment = 0.5;
@@ -156,6 +188,14 @@ pub fn launch_platform_control_system(
                 velocity.linvel.y = 0.0;
             }
         }
+    }
+
+    if key_code.just_pressed(KeyCode::D) {
+        tween(-0.2);
+    } else if key_code.just_pressed(KeyCode::A) {
+        tween(0.2);
+    } else if key_code.just_released(KeyCode::D) || key_code.just_released(KeyCode::A) {
+        tween(0.0);
     }
 }
 

@@ -151,7 +151,7 @@ pub static LEVELS: [Level; 9] = [
             rotation: 0.1,
             ..default_level_base()
         }],
-        launch_platform: static_launch_platform(),
+        launch_platform: free_launch_platform(),
         ..DEFAULT_LEVEL
     },
     Level {
