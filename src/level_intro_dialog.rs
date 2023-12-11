@@ -44,7 +44,7 @@ pub fn update_level_intro_dialog(
                 .show(egui.ctx_mut(), |ui| {
                     ui.set_min_width(120.0);
 
-                    ui.heading(format!("Level {}", level.level + 1));
+                    ui.heading(format!("Level {} - {}", level.level + 1, level.name));
 
                     ui.label(intro_text);
 

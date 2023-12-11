@@ -95,6 +95,7 @@ const fn default_level_base() -> LevelBase {
 #[derive(Resource, Debug, Clone)]
 pub struct Level {
     pub level: usize,
+    pub name: &'static str,
     pub goal: LevelGoal,
     pub max_blocks: Option<usize>,
     pub time_limit: Option<Duration>,
@@ -114,6 +115,7 @@ pub const NO_EFFECTS: [(EffectType, f32); 0] = [];
 
 pub const DEFAULT_LEVEL: Level = Level {
     level: 0,
+    name: "Unnamed",
     goal: LevelGoal::ReachHeight(20.0),
     time_limit: Some(Duration::from_secs(60)),
     max_blocks: None,
@@ -144,6 +146,7 @@ pub struct LevelLifecycle;
 pub static LEVELS: [Level; 10] = [
     Level {
         level: 0,
+        name: "First day on the job",
         intro_text: Some("Welcome to your first day at Big Bad Buildings, Inc. Your job is to operate the Tower Thrower 3000, a state-of-the-art machine that constructs buildings by throwing blocks.
 For your first building, reach a target height of 20m.
 
@@ -164,6 +167,7 @@ Q / E: Finely adjust rotation
     },
     Level {
         level: 1,
+        name: "Supply chain issues",
         intro_text: Some("For this building we only have a limited block supply. Be careful to not drop any! Stack 15 blocks to continue."),
         goal: LevelGoal::ReachBlockCount(15),
         max_blocks: Some(20),
@@ -174,9 +178,9 @@ Q / E: Finely adjust rotation
         enabled_effects: &NO_EFFECTS,
         ..DEFAULT_LEVEL
     },
-    // TODO: Make this easier
     Level {
         level: 2,
+        name: "Slip and Slide",
         intro_text: Some("Oh no, it's raining! Everything will be slippery"),
         goal: LevelGoal::ReachHeight(8.0),
         bases: &[LevelBase {
@@ -194,6 +198,7 @@ Q / E: Finely adjust rotation
     },
     Level {
         level: 3,
+        name: "Sticks like glue",
         intro_text: Some("We found some glue in the basement, some blocks will be sticky."),
         goal: LevelGoal::ReachHeight(12.0),
         max_blocks: Some(25),
@@ -212,6 +217,7 @@ Q / E: Finely adjust rotation
     },
     Level {
         level: 4,
+        name: "I like to move it",
         intro_text: Some("Ooops, this one is tilted. We've upgraded your cannon with rocket boosters, so it can move freely now! Move with WASD."),
         goal: LevelGoal::ReachHeight(10.0),
         max_blocks: Some(20),
@@ -228,8 +234,8 @@ Q / E: Finely adjust rotation
     },
     Level {
         level: 5,
+        name: "Head in the clouds",
         goal: LevelGoal::ReachBlockCount(15),
-        time_limit: Some(Duration::from_secs(60)),
         max_blocks: Some(25),
         bases: &[
             LevelBase {
@@ -245,6 +251,7 @@ Q / E: Finely adjust rotation
     },
     Level {
         level: 6,
+        name: "Attraction",
         intro_text: Some("We've ordered some magnets, these should hopefully help with building stability."),
         goal: LevelGoal::ReachHeight(30.0),
         bases: &[
@@ -264,6 +271,7 @@ Q / E: Finely adjust rotation
 
     Level {
         level: 7,
+        name: "Double Trouble",
         intro_text: Some("We're going to build the next one on two existing buildings, try combining them so you have a wider fundament."),
         goal: LevelGoal::ReachHeight(20.0),
         bases: &[
@@ -283,6 +291,7 @@ Q / E: Finely adjust rotation
     },
     Level {
         level: 8,
+        name: "Block it like it's hot",
         intro_text: Some("Don't make any mistakes here"),
         goal: LevelGoal::ReachBlockCount(30),
         max_blocks: Some(33),
@@ -299,6 +308,7 @@ Q / E: Finely adjust rotation
     },
     Level {
         level: 9,
+        name: "Hello, neighbors!",
         goal: LevelGoal::ReachHeight(22.0),
         bases: &[
             LevelBase {
