@@ -1,17 +1,20 @@
-use crate::environment::fees::{FeesPlugin, LevelFees};
 use bevy::prelude::*;
-use bevy_egui::egui::{Color32, RichText};
+use bevy_egui::egui::load::SizedTexture;
+use bevy_egui::egui::{Color32, Frame, ImageSource, Layout, RichText};
 use bevy_egui::{egui, EguiContexts};
 
-use crate::level::{Level, LevelStats, NextLevel};
+use crate::block::Aiming;
+use crate::environment::fees::LevelFees;
+use crate::level::{Level, LevelGoal, LevelStats, NextLevel};
 use crate::state::LevelState;
+use crate::throw::ThrowQueue;
 
 pub struct LevelUiPlugin;
 
 impl Plugin for LevelUiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_level_ui)
-            .add_systems(Update, egui_level_ui);
+            .add_systems(Update, (egui_level_ui, target_ui));
     }
 }
 
@@ -113,5 +116,87 @@ pub fn egui_level_ui(
             if *level_state == LevelState::Lost {
                 ui.label(RichText::new("You Lost").size(50.0).color(Color32::RED));
             }
+        });
+}
+
+pub fn target_ui(
+    level: Res<Level>,
+    level_stats: Res<LevelStats>,
+    mut egui: EguiContexts,
+    assets: Res<AssetServer>,
+    mut is_initialized: Local<bool>,
+    mut rendered_texture_id: Local<egui::TextureId>,
+    mut has_aiming_block: Query<(), With<Aiming>>,
+    queue: Res<ThrowQueue>,
+) {
+    if !*is_initialized {
+        *is_initialized = true;
+        *rendered_texture_id = egui.add_image(assets.load("blocks/T/2.png"));
+    }
+
+    egui::Window::new("Target UI")
+        .title_bar(false)
+        .movable(false)
+        .resizable(false)
+        .frame(Frame::none())
+        .anchor(egui::Align2::RIGHT_TOP, egui::Vec2::new(-16.0, 8.0))
+        .show(egui.ctx_mut(), |ui| {
+            ui.with_layout(Layout::top_down(egui::Align::Max), |ui| {
+                match level.goal {
+                    LevelGoal::ReachHeight(height) => {
+                        ui.horizontal(|ui| {
+                            ui.set_min_height(45.0);
+                            ui.label(
+                                RichText::new(format!("/ {:.1}m", height))
+                                    .size(30.0)
+                                    .color(Color32::DARK_GRAY),
+                            );
+                            ui.label(
+                                RichText::new(format!("{:.1}m", level_stats.current_height))
+                                    .size(40.0)
+                                    .color(Color32::BLACK),
+                            );
+                        });
+                    }
+                    LevelGoal::ReachBlockCount(count) => {
+                        ui.horizontal(|ui| {
+                            ui.set_min_height(45.0);
+                            ui.label(
+                                RichText::new(format!("/ {}", count))
+                                    .size(30.0)
+                                    .color(Color32::DARK_GRAY),
+                            );
+                            ui.label(
+                                RichText::new(format!("{}", level_stats.current_block_count))
+                                    .size(40.0)
+                                    .color(Color32::BLACK),
+                            );
+                        });
+                    }
+                }
+
+                if let Some(max_blocks) = level.max_blocks {
+                    let add_one_for_aiming_block = if has_aiming_block.get_single().is_ok() {
+                        1
+                    } else {
+                        0
+                    };
+
+                    ui.horizontal(|ui| {
+                        ui.label(
+                            RichText::new(format!(
+                                "{}",
+                                queue.queue.len() + add_one_for_aiming_block
+                            ))
+                            .size(40.0)
+                            .color(Color32::BLACK),
+                        );
+                        ui.image(ImageSource::Texture(SizedTexture::new(
+                            *rendered_texture_id,
+                            egui::Vec2::new(60.0, 40.0),
+                        )));
+                    });
+                }
+            });
         });
 }
