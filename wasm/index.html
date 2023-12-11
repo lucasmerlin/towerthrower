@@ -1,7 +1,23 @@
 <!doctype html>
 <html lang="en">
-
-<body style="margin: 0px;">
+<head>
+    <title>Tower Thrower</title>
+    <style>
+        html, head, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<script>
+    document.oncontextmenu = function (e) {
+        e.preventDefault();
+    };
+</script>
 <script type="module">
     import './restart-audio-context.js'
     import init from './bevy_game.js'
