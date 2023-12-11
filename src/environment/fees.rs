@@ -20,8 +20,8 @@ pub struct LevelFees {
 }
 
 pub fn update_fees(mut level_fees: ResMut<LevelFees>, stats: Res<LevelStats>) {
-    level_fees.cleanup_fee = stats.blocks_dropped as f32 * 10.0;
-    level_fees.property_damage = stats.cars_hit as f32 * 100.0;
+    level_fees.cleanup_fee = stats.blocks_dropped as f32 * 100.0;
+    level_fees.property_damage = stats.cars_hit as f32 * 10000.0;
 }
 
 pub fn reset_level_fees(mut level_fees: ResMut<LevelFees>) {

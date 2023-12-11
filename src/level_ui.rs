@@ -176,6 +176,18 @@ pub fn target_ui(
                 if ui.button("Retry").clicked() {
                     next_level.send(NextLevel(Some(level.level)));
                 }
+
+                ui.add_space(10.0);
+
+                ui.label(
+                    "Controls:
+Mouse: Aim
+Left click: Throw
+Scroll Wheel: Adjust Force
+Right click: Rotate Block
+Q/E: Throw rotation
+WASD: Move cannon",
+                );
             });
     }
 

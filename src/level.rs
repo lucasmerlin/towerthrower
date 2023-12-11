@@ -6,6 +6,7 @@ use bevy_rapier2d::prelude::Velocity;
 use crate::base::BaseType;
 use crate::block::{Aiming, Block, Falling};
 use crate::effect::EffectType;
+use crate::level_intro_dialog::DialogResource;
 use crate::state::LevelState;
 
 pub struct LevelPlugin;
