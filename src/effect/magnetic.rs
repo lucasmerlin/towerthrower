@@ -22,7 +22,7 @@ impl Default for MagneticEffect {
     fn default() -> Self {
         Self {
             range: 10.0,
-            force: 2.0,
+            force: 1.0,
         }
     }
 }

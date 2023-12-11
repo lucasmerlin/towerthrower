@@ -254,9 +254,9 @@ pub fn simulate_throw_system(
             commands.spawn((
                 SpriteBundle {
                     transform: step,
-                    texture: assets.load("aim.png"),
+                    texture: assets.load("circle.png"),
                     sprite: Sprite {
-                        custom_size: Some(Vec2::new(0.2, 0.2)),
+                        custom_size: Some(Vec2::new(0.12, 0.12)),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -272,7 +272,27 @@ pub fn simulate_throw_system(
             let mut sprite = block.sprite(&*assets);
             sprite.transform = transform;
             sprite.sprite.color = Color::rgba(1.0, 1.0, 1.0, 0.5);
-            commands.spawn((sprite, TargetIndicator, TargetIndicatorBlock, shape, Sensor));
+            commands
+                .spawn((sprite, TargetIndicator, TargetIndicatorBlock, shape, Sensor))
+                .with_children(|parent| {
+                    if let Some(effect) = block.effect_type {
+                        let mut texture = effect.texture(block.block_type);
+                        let sprite = SpriteBundle {
+                            transform: Transform::from_xyz(0.0, 0.0, 0.1),
+                            sprite: Sprite {
+                                color: Color::rgba(1.0, 1.0, 1.0, 0.8),
+                                custom_size: Some(Vec2::new(
+                                    block.block_type.width(),
+                                    block.block_type.height(),
+                                )),
+                                ..Default::default()
+                            },
+                            texture: assets.load(texture),
+                            ..Default::default()
+                        };
+                        parent.spawn((sprite,));
+                    }
+                });
         }
     }
 }

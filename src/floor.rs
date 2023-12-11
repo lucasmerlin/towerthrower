@@ -24,15 +24,7 @@ pub fn setup_floor(mut commands: Commands) {
     let collider = Collider::cuboid(width / 2.0, height / 2.0);
 
     commands.spawn((
-        SpriteBundle {
-            // sprite: Sprite {
-            //     custom_size: Some(Vec2::new(width, height)),
-            //     color: Color::rgb(0.0, 0.0, 0.0),
-            //     ..Default::default()
-            // },
-            transform: Transform::from_xyz(0.0, -height / 2.0 + FLOOR_HEIGHT, 0.0),
-            ..Default::default()
-        },
+        SpatialBundle::from_transform(Transform::from_xyz(0.0, -height / 2.0 + FLOOR_HEIGHT, 0.0)),
         Floor,
         LevelLifecycle,
         DestroyBlockOnContact,
