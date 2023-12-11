@@ -1,9 +1,11 @@
 use std::f32::consts::PI;
+use std::time::Duration;
 
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
-use bevy::render::settings::settings_priority_from_env;
 use bevy_rapier2d::prelude::*;
+use bevy_tweening::lens::TransformScaleLens;
+use bevy_tweening::{Animator, EaseFunction, RepeatCount, RepeatStrategy, Tween};
 use rand::prelude::SliceRandom;
 use rand::{random, thread_rng, Rng};
 
@@ -11,10 +13,10 @@ use crate::block::{Aiming, Block, BlockType, Falling};
 use crate::camera_movement::CameraMovement;
 use crate::cursor_system::CursorCoords;
 use crate::effect::magnetic::{calculate_magnetic_impulse, MagneticEffect};
-use crate::effect::EffectType;
-use crate::launch_platform::LaunchPlatform;
+use crate::launch_platform::{Barrel, LaunchPlatform};
 use crate::level::{Level, LevelStats, UpdateLevelStats};
 use crate::state::LevelState;
+use crate::visibility_timer::VisibilityTimer;
 use crate::{BARREL_LENGTH, GRAVITY, PHYSICS_DT};
 
 pub struct ThrowPlugin;
@@ -51,6 +53,7 @@ impl Plugin for ThrowPlugin {
 pub struct Aim {
     pub direction: Vec2,
     pub barrel_direction: Option<Vec2>,
+    pub exits_barrel_after: f32,
     pub force_factor: f32,
     pub force: f32,
     pub rotation: f32,
@@ -59,6 +62,7 @@ impl Default for Aim {
     fn default() -> Self {
         Self {
             barrel_direction: None,
+            exits_barrel_after: 0.0,
             direction: Vec2::from_angle(PI / 1.5),
             force_factor: 0.0,
             force: 500.0,
@@ -132,16 +136,13 @@ pub fn simulate_throw_system(
             Without<TargetIndicator>,
         ),
     >,
+    is_falling_block_query: Query<Entity, With<Falling>>,
     am_i_magnet: Query<&MagneticEffect>,
     mut assets: ResMut<AssetServer>,
 ) {
     // remove previous target indicators
     for entity in old_target_indicators.iter() {
         commands.entity(entity).despawn_recursive();
-    }
-
-    if has_falling_block.iter().count() > 0 {
-        return;
     }
 
     if let Ok((aimed, block, aimed_collider, aimed_transform, mass)) = aimed_block.get_single() {
@@ -158,6 +159,7 @@ pub fn simulate_throw_system(
         let mut steps = vec![];
 
         aim.barrel_direction = None;
+        aim.exits_barrel_after = 0.0;
 
         while t < 2.0 {
             let angle = Vec2::Y.angle_between((transform.rotation * Vec3::Y).xy());
@@ -175,9 +177,12 @@ pub fn simulate_throw_system(
             );
 
             if let Some((entity, toi)) = intersection {
-                transform.translation += Vec3::from((velocity.linvel * toi.toi, 0.0));
-                hit = true;
-                break;
+                let is_falling_block = is_falling_block_query.get(entity).is_ok();
+                if !is_falling_block {
+                    transform.translation += Vec3::from((velocity.linvel * toi.toi, 0.0));
+                    hit = true;
+                    break;
+                }
             }
 
             let my_magnetic_effect = am_i_magnet.get(aimed).ok();
@@ -228,6 +233,7 @@ pub fn simulate_throw_system(
                 aim.barrel_direction = Some(
                     (transform.translation.xy() - aimed_transform.translation.xy()).normalize(),
                 );
+                aim.exits_barrel_after = t;
             }
 
             steps.push(transform.clone());
@@ -482,6 +488,7 @@ pub fn throw_system(
     mut query: Query<(Entity), With<Aiming>>,
     mut update_level_stats_event: EventWriter<UpdateLevelStats>,
     target_indicator_block_query: Query<Entity, With<TargetIndicatorBlock>>,
+    mut barrel: Query<Entity, With<Barrel>>,
 ) {
     if input.just_pressed(KeyCode::Space)
         || mouse_button_input.just_pressed(MouseButton::Left)
@@ -497,7 +504,10 @@ pub fn throw_system(
                     RigidBody::Dynamic,
                     Sleeping::disabled(),
                     aim.velocity(),
-                    Visibility::Visible,
+                    VisibilityTimer(Timer::new(
+                        Duration::from_secs_f32(aim.exits_barrel_after),
+                        TimerMode::Once,
+                    )),
                 ));
 
             update_level_stats_event.send(UpdateLevelStats::BlockThrown);
@@ -505,6 +515,30 @@ pub fn throw_system(
 
         for entity in target_indicator_block_query.iter() {
             commands.entity(entity).despawn_recursive();
+        }
+
+        for entity in barrel.iter() {
+            // Create a single animation (tween) to move an entity.
+            let tween = Tween::new(
+                // Use a quadratic easing on both endpoints.
+                EaseFunction::QuadraticInOut,
+                // Animation time (one way only; for ping-pong it takes 2 seconds
+                // to come back to start).
+                Duration::from_secs_f32(0.125),
+                // The lens gives the Animator access to the Transform component,
+                // to animate it. It also contains the start and end values associated
+                // with the animation ratios 0. and 1.
+                TransformScaleLens {
+                    start: Vec3::ONE,
+                    end: Vec3::new(1.5, 0.8, 1.0),
+                },
+            )
+            // Repeat twice (one per way)
+            .with_repeat_count(RepeatCount::Finite(2))
+            // After each iteration, reverse direction (ping-pong)
+            .with_repeat_strategy(RepeatStrategy::MirroredRepeat);
+
+            commands.entity(entity).insert(Animator::new(tween));
         }
     }
 }

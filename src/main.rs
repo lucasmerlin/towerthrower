@@ -1,10 +1,9 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
-use bevy::window::WindowResolution;
 use bevy_egui::EguiPlugin;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::prelude::*;
+use bevy_tweening::TweeningPlugin;
 
 use crate::base::BasePlugin;
 use crate::block::{BlockPlugin, CaughtBlock, FallingBlockCollision, SpawnTimer};
@@ -23,6 +22,7 @@ use crate::state::StatePlugin;
 use crate::target_height_indicator::TargetHeightIndicatorPlugin;
 use crate::throw::ThrowPlugin;
 use crate::ui::UiPlugin;
+use crate::visibility_timer::VisibilityTimerPlugin;
 
 mod base;
 mod block;
@@ -42,6 +42,7 @@ mod state;
 mod target_height_indicator;
 mod throw;
 mod ui;
+mod visibility_timer;
 
 /// Used to help identify our main camera
 #[derive(Component)]
@@ -91,7 +92,8 @@ fn main() {
                 debug
             },
             EguiPlugin,
-            WorldInspectorPlugin::new(),
+            TweeningPlugin,
+            //WorldInspectorPlugin::new(),
             // Game plugins
             (
                 BlockPlugin,
@@ -111,6 +113,7 @@ fn main() {
                 UiPlugin,
                 LevelIntroDialogPlugin,
                 CollisionSoundPlugin,
+                VisibilityTimerPlugin,
             ),
         ))
         .add_systems(Startup, (setup_graphics, setup_physics))
