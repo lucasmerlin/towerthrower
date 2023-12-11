@@ -41,6 +41,8 @@ pub struct LevelStats {
     pub blocks_dropped: usize,
 
     pub cars_hit: usize,
+
+    pub timer: Option<Timer>,
 }
 
 #[derive(Event, Debug, Clone)]
@@ -399,9 +401,10 @@ pub fn check_current_block_stats(
 
 pub fn check_win_loose_condition(
     mut commands: Commands,
-    level_stats: Res<LevelStats>,
+    mut level_stats: ResMut<LevelStats>,
     level: Res<Level>,
     mut state: ResMut<NextState<LevelState>>,
+    time: Res<Time>,
 ) {
     match level.goal {
         LevelGoal::ReachHeight(height) => {
@@ -414,6 +417,13 @@ pub fn check_win_loose_condition(
             if level_stats.current_block_count >= count {
                 state.set(LevelState::Won);
             }
+        }
+    }
+
+    if let Some(timer) = &mut level_stats.timer {
+        timer.tick(time.delta());
+        if timer.finished() {
+            state.set(LevelState::Lost);
         }
     }
 }

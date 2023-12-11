@@ -515,6 +515,8 @@ pub fn throw_system(
     mut update_level_stats_event: EventWriter<UpdateLevelStats>,
     target_indicator_block_query: Query<Entity, With<TargetIndicatorBlock>>,
     mut barrel: Query<Entity, With<Barrel>>,
+    throw_queue: Res<ThrowQueue>,
+    mut level_stats: ResMut<LevelStats>,
 ) {
     if input.just_pressed(KeyCode::Space)
         || mouse_button_input.just_pressed(MouseButton::Left)
@@ -537,6 +539,10 @@ pub fn throw_system(
                 ));
 
             update_level_stats_event.send(UpdateLevelStats::BlockThrown);
+
+            if throw_queue.queue.is_empty() {
+                level_stats.timer = Some(Timer::new(Duration::from_secs_f32(5.0), TimerMode::Once));
+            }
         }
 
         for entity in target_indicator_block_query.iter() {
