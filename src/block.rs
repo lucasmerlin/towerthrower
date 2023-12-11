@@ -1,10 +1,10 @@
 use std::f32::consts::FRAC_PI_2;
 
-use crate::collision_sounds::CollisionSound;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use rand::{thread_rng, Rng};
+use rand::Rng;
 
+use crate::collision_sounds::CollisionSound;
 use crate::consts::BLOCK_COLLISION_GROUP;
 use crate::effect::EffectType;
 use crate::floor::Floor;
@@ -73,59 +73,47 @@ impl BlockType {
     pub fn get_shape(&self) -> Vec<Vec2> {
         match self {
             BlockType::I => vec![
-                Vec2::new(0.0, 0.0),
-                Vec2::new(1.0, 0.0),
-                Vec2::new(2.0, 0.0),
-                Vec2::new(3.0, 0.0),
+                Vec2::new(-1.5, 0.0),
+                Vec2::new(-0.5, 0.0),
+                Vec2::new(0.5, 0.0),
+                Vec2::new(1.5, 0.0),
             ],
             BlockType::O => vec![
-                Vec2::new(0.0, 0.0),
-                Vec2::new(1.0, 0.0),
-                Vec2::new(0.0, 1.0),
-                Vec2::new(1.0, 1.0),
+                Vec2::new(-0.5, -0.5),
+                Vec2::new(0.5, -0.5),
+                Vec2::new(-0.5, 0.5),
+                Vec2::new(0.5, 0.5),
             ],
             BlockType::T => vec![
-                Vec2::new(0.0, 0.0),
-                Vec2::new(1.0, 0.0),
-                Vec2::new(2.0, 0.0),
-                Vec2::new(1.0, 1.0),
+                Vec2::new(-1.0, -0.5),
+                Vec2::new(0.0, -0.5),
+                Vec2::new(1.0, -0.5),
+                Vec2::new(0.0, 0.5),
             ],
             BlockType::S => vec![
-                Vec2::new(0.0, 0.0),
-                Vec2::new(1.0, 0.0),
-                Vec2::new(1.0, 1.0),
-                Vec2::new(2.0, 1.0),
+                Vec2::new(-1.0, -0.5),
+                Vec2::new(0.0, -0.5),
+                Vec2::new(0.0, 0.5),
+                Vec2::new(1.0, 0.5),
             ],
             BlockType::Z => vec![
-                Vec2::new(0.0, 1.0),
-                Vec2::new(1.0, 1.0),
-                Vec2::new(1.0, 0.0),
-                Vec2::new(2.0, 0.0),
+                Vec2::new(-1.0, 0.5),
+                Vec2::new(0.0, 0.5),
+                Vec2::new(0.0, -0.5),
+                Vec2::new(1.0, -0.5),
             ],
             BlockType::J => vec![
-                Vec2::new(0.0, 0.0),
-                Vec2::new(0.0, 1.0),
-                Vec2::new(1.0, 1.0),
-                Vec2::new(2.0, 1.0),
+                Vec2::new(-1.0, -0.5),
+                Vec2::new(0.0, -0.5),
+                Vec2::new(1.0, -0.5),
+                Vec2::new(-1.0, 0.5),
             ],
             BlockType::L => vec![
-                Vec2::new(0.0, 1.0),
-                Vec2::new(1.0, 1.0),
-                Vec2::new(2.0, 1.0),
-                Vec2::new(2.0, 0.0),
+                Vec2::new(-1.0, -0.5),
+                Vec2::new(0.0, -0.5),
+                Vec2::new(1.0, -0.5),
+                Vec2::new(1.0, 0.5),
             ],
-        }
-    }
-
-    pub fn get_center(&self) -> Vec2 {
-        match self {
-            BlockType::I => Vec2::new(1.5, 0.5),
-            BlockType::O => Vec2::new(0.5, 0.5),
-            BlockType::T => Vec2::new(1.0, 0.5),
-            BlockType::S => Vec2::new(1.0, 0.5),
-            BlockType::Z => Vec2::new(1.0, 0.5),
-            BlockType::J => Vec2::new(1.0, 0.5),
-            BlockType::L => Vec2::new(1.0, 0.5),
         }
     }
 
@@ -241,6 +229,22 @@ impl BlockType {
             BlockType::J => "J",
             BlockType::L => "L",
         }
+    }
+
+    pub fn all_corners(&self) -> Vec<Vec2> {
+        let mut corners = Vec::new();
+        let shape = self.get_shape();
+        for corner in shape.iter() {
+            for x in 0..=1 {
+                for y in 0..=1 {
+                    let corner = Vec2::new(corner.x + x as f32 - 0.5, corner.y + y as f32 - 0.5);
+                    if !shape.contains(&corner) {
+                        corners.push(corner);
+                    }
+                }
+            }
+        }
+        corners
     }
 }
 

@@ -275,17 +275,31 @@ pub fn load_level_event(
 }
 
 pub fn check_current_block_stats(
-    query: Query<(&Transform, &Velocity), (With<Block>, Without<Aiming>, Without<Falling>)>,
+    query: Query<(&Block, &Transform, &Velocity), (Without<Aiming>, Without<Falling>)>,
     mut level_stats: ResMut<LevelStats>,
 ) {
     let mut max_height = 0.0;
     let mut block_count = 0;
 
-    for (transform, velocity) in query.iter() {
-        if velocity.linvel.length() < 0.1 {
+    for (block, transform, velocity) in query.iter() {
+        if velocity.linvel.length() < 0.03 {
             block_count += 1;
-            if transform.translation.y > max_height {
-                max_height = transform.translation.y;
+
+            let corners = block.block_type.all_corners();
+
+            let height = corners
+                .iter()
+                .map(|corner| {
+                    let pos = transform
+                        .compute_matrix()
+                        .transform_point(Vec3::from((*corner, 0.0)));
+                    pos.y
+                })
+                .max_by(|a, b| a.partial_cmp(b).unwrap())
+                .unwrap_or(0.0);
+
+            if height > max_height {
+                max_height = height;
             }
         }
     }
@@ -302,7 +316,8 @@ pub fn check_win_loose_condition(
 ) {
     match level.goal {
         LevelGoal::ReachHeight(height) => {
-            if level_stats.current_height >= height {
+            // We add 0.05 because the ui is rounded a single decimal
+            if level_stats.current_height + 0.05 >= height {
                 state.set(LevelState::Won);
             }
         }

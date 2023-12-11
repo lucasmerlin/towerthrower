@@ -1,5 +1,6 @@
 use crate::ASSET_SCALE;
 use bevy::prelude::*;
+use bevy::sprite::Anchor;
 
 use crate::level::{Level, LevelGoal, LevelLifecycle};
 use crate::state::LevelState;
@@ -34,12 +35,16 @@ pub fn setup_target_height_indicator(
             TargetHeightIndicator,
             LevelLifecycle,
             SpriteBundle {
-                transform: Transform::from_xyz(0.0, height, 5.0).with_scale(Vec3::new(
+                transform: Transform::from_xyz(0.0, height, -0.1).with_scale(Vec3::new(
                     ASSET_SCALE,
                     ASSET_SCALE * 0.5,
                     1.0,
                 )),
                 texture: assets.load("target_height_indicator.png"),
+                sprite: Sprite {
+                    anchor: Anchor::TopCenter,
+                    ..Default::default()
+                },
                 ..Default::default()
             },
         ));

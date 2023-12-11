@@ -27,6 +27,7 @@ impl Plugin for ThrowPlugin {
             PreUpdate,
             (create_aiming_block.run_if(in_state(LevelState::Playing)),),
         )
+        .add_systems(OnEnter(LevelState::Playing), setup_throw_queue)
         .add_systems(OnExit(LevelState::Playing), remove_simulation_system)
         .add_systems(
             PreUpdate,
@@ -145,6 +146,8 @@ pub fn simulate_throw_system(
         commands.entity(entity).despawn_recursive();
     }
 
+    let falling_blocks = has_falling_block.iter().collect::<Vec<_>>();
+
     if let Ok((aimed, block, aimed_collider, aimed_transform, mass)) = aimed_block.get_single() {
         let mut t = 0.0;
         let dt = PHYSICS_DT;
@@ -172,7 +175,7 @@ pub fn simulate_throw_system(
                 dt,
                 true,
                 QueryFilter::default()
-                    .exclude_collider(aimed)
+                    .predicate(&|entity| !falling_blocks.contains(&entity) && entity != aimed)
                     .exclude_sensors(),
             );
 
@@ -329,6 +332,7 @@ fn throw_queue_item(level: &Level) -> Block {
 }
 
 pub fn setup_throw_queue(mut throw_queue: ResMut<ThrowQueue>, level: Res<Level>) {
+    *throw_queue = ThrowQueue::default();
     if let Some(max_blocks) = level.max_blocks {
         for _ in 0..max_blocks {
             throw_queue.queue.push(throw_queue_item(&level));

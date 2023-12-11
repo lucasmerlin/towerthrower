@@ -133,7 +133,7 @@ fn main() {
         .insert_resource(AssetMetaCheck::Never)
         .add_event::<CaughtBlock>()
         .add_event::<FallingBlockCollision>()
-        //.insert_resource(Time::<Fixed>::from_seconds(0.25))
+        //.insert_resource(Time::<Fixed>::from_seconds(0.125))
         .run();
 }
 

@@ -48,16 +48,16 @@ pub fn block_to_debris_system(
                         commands.entity(entity).despawn_recursive();
 
                         for pos in block.block_type.get_shape() {
+                            let pos = transform
+                                .compute_matrix()
+                                .transform_point(Vec3::from((pos, 0.0)));
+
                             commands.spawn((
                                 Debris::default(),
                                 LevelLifecycle,
                                 SpriteBundle {
-                                    transform: Transform::from_xyz(
-                                        transform.translation.x,
-                                        transform.translation.y,
-                                        0.0,
-                                    )
-                                    .with_rotation(transform.rotation),
+                                    transform: Transform::from_xyz(pos.x, pos.y, 0.0)
+                                        .with_rotation(transform.rotation),
 
                                     texture: assets.load(format!(
                                         "debris/debris_{}.png",
@@ -72,7 +72,10 @@ pub fn block_to_debris_system(
                                 RigidBody::Dynamic,
                                 Collider::cuboid(BLOCK_SIZE / 2.0, BLOCK_SIZE / 2.0),
                                 Friction::coefficient(0.5),
-                                Velocity::linear(Vec2::new(velocity.linvel.x, velocity.linvel.y)),
+                                Velocity {
+                                    linvel: velocity.linvel,
+                                    angvel: velocity.angvel,
+                                },
                                 ExternalImpulse::default(),
                                 //Dominance::group(-1),
                                 CollisionGroups {
