@@ -1,9 +1,16 @@
-It's the year 2060, the world population is growing faster than ever.
+# Tower Thrower 
+A tetris and tricky towers inspired physics game made with rust and bevy for the [bevy game jam #4](https://itch.io/jam/bevy-jam-4).
+
+> It's the year 2060, the world population is growing faster than ever.
 This rapid growth required new innovations in skyscraper construction.
 One such innovation is the **Tower Thrower 3000**.
-
-It allows buildings to be constructed faster than ever before, although some
+> 
+> It allows buildings to be constructed faster than ever before, although some
 trade-offs in building stability had to be made...
+
+
+https://github.com/lucasmerlin/towerthrower/assets/8009393/9d85fc2b-275e-4ada-a21e-531ae0058730
+
 
 
 # Assets used
